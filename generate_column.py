@@ -1,5 +1,8 @@
 import json
 from Station import Station
+from vehicle import Vehicle
+import copy
+import numpy as np
 
 
 def generate_all_stations(scenario):
@@ -24,10 +27,7 @@ def generate_all_stations(scenario):
     return station_objects
 
 
-stations = generate_all_stations('A')
-
-
-def get_station_from_id(id):
+def get_station_from_id(id, stations):
     for station in stations:
         if station.id == id:
             return station
@@ -36,129 +36,91 @@ def get_station_from_id(id):
 class Column:
 
     def __init__(self, starting_st, vehicle, time_hor=25):
+        self.starting_station = starting_st
         self.stations = [starting_st]
         self.length = 0
         self.station_visits = [0]
-        self.activity = list()
+        self.upper_extremes = None
         self.violations = 0
         self.deviations = 0
         self.congestion = 0
         self.reward = 0
         self.time_horizon = time_hor
         self.vehicle = vehicle
+        self.patterns = list()
+        self.handling_time = 0.5
 
     def add_station(self, station, added_station_time):
         self.stations.append(station)
         self.length += added_station_time
         self.station_visits.append(self.length + added_station_time)
 
-    def optimize_activity(self, handling_time=0.5, policy='greedy'):
+    def generate_extreme_pattern(self, policy='greedy'):
         swap, bat_load, bat_unload, flat_load, flat_unload = (0, 0, 0, 0, 0)
         if policy == 'greedy':
-            for i in range(len(self.stations)):
-                time_of_visit = self.station_visits[i]
-                station = self.stations[i]
-                if station.init_flat_station_load + time_of_visit*station.flat_rate > 0:
-                    if self.vehicle.current_batteries > (station.init_flat_station_load + time_of_visit*station.flat_rate):
-                        swap = int(station.init_flat_station_load + time_of_visit*station.flat_rate)
-                    else:
-                        swap = self.vehicle.current_batteries
-                    self.vehicle.swap_batteries(swap)
-                    station.change_battery_load(swap + time_of_visit*station.battery_rate)
-                    station.change_flat_load(-swap + time_of_visit*station.flat_rate)
-                if station.outgoing_rate > 0:
-                    bat_unload = min(self.vehicle.current_battery_bikes, station.available_parking())
-                    self.vehicle.change_battery_bikes(-bat_unload)
-                    flat_load = min(self.vehicle.available_capacity(), station.current_flat_bikes)
-                    if bat_unload == station.available_parking():
-                        station.change_flat_load(flat_load)
-                        bat_unload += station.available_parking()
-                        self.vehicle.change_battery_bikes(-station.available_parking())
-                    self.vehicle.change_flat_bikes(flat_load)
-                if station.outgoing_rate < 0:
-                    bat_load = min(station.current_battery_bikes, self.vehicle.available_capacity())
-                    self.vehicle.change_battery_bikes(bat_load)
-                    flat_unload = min(self.vehicle.current_flat_bikes, station.available_parking())
-                    if bat_load == self.vehicle.available_capacity():
-                        self.vehicle.change_battery_bikes(-flat_unload)
-                        bat_load += self.vehicle.available_capacity()
-                        self.vehicle.change_battery_bikes(self.vehicle.available_capacity())
-                self.activity.append((swap, bat_load, bat_unload, flat_load, flat_unload))
-                added_time = (swap + bat_load + bat_unload + flat_load + flat_unload) * handling_time
-                for t in self.station_visits[i:]:
-                    t + added_time
-
-    def calculate_violations(self):
-        total_violation = 0
-        for i in range(len(self.stations)):
-            time_of_visit = self.station_visits[i]
-            station = self.stations[i]
-            swap, bat_load, bat_unload, flat_load, flat_unload = self.activity[i]
-            if time_of_visit < self.time_horizon:
-                if station.init_station_load - time_of_visit*station.outgoing_rate < 0:
-                    total_violation += time_of_visit*station.outgoing_rate - station.init_station_load
-                if (station.init_station_load + station.init_flat_station_load
-                    - time_of_visit*station.outgoing_rate) > station.station_cap:
-                    total_violation += (station.init_station_load + station.init_flat_station_load +
-                                        time_of_visit*station.outgoing_rate - station.station_cap)
-                remaining_time = self.time_horizon - time_of_visit
-                if station.init_station_load + swap + bat_load - bat_unload - remaining_time*station.outgoing_rate < 0:
-                    total_violation += (remaining_time*station.outgoing_rate - station.init_station_load
-                                        + swap + bat_load - bat_unload)
-                if (station.init_station_load + swap + bat_load - bat_unload + flat_load - flat_unload
-                    - remaining_time*station.outgoing_rate) > station.station_cap:
-                    total_violation += (remaining_time*station.outgoing_rate - station.init_station_load
-                                        + swap + bat_load - bat_unload + flat_load - flat_unload)
-            else:
-                pass
-                # Violations ved besøk etter time horizon
-        self.violations = total_violation
-
-    def calculate_deviation_and_congestion(self):
-        dev = 0
-        congestion = 0
-        for i in range(len(self.stations)):
-            time_of_visit = self.station_visits[i]
-            station = self.stations[i]
-            swap, bat_load, bat_unload, flat_load, flat_unload = self.activity[i]
-            if time_of_visit < self.time_horizon:
-                battery_bikes = max(0, station.init_station_load - time_of_visit * station.outgoing_rate
-                                    ) + swap + bat_unload - bat_load - max(0, station.current_battery_bikes - (
-                                    self.time_horizon - time_of_visit) * station.outgoing_rate)
-                dev += abs(station.ideal_state - battery_bikes)
-                if (station.init_station_load + station.init_flat_station_load - station.outgoing_rate * time_of_visit
-                        ) > station.station_cap:
-                    congestion += station.init_station_load + station.init_flat_station_load - station.outgoing_rate * \
-                                  time_of_visit - station.station_cap
-                if (station.available_parking() + station.outgoing_rate * (self.time_horizon - time_of_visit)) < 0:
-                    congestion += (station.available_parking() + station.outgoing_rate * (self.time_horizon - time_of_visit))
-            else:
-                if (station.init_station_load + station.init_flat_station_load - station.outgoing_rate * self.time_horizon
-                ) > station.station_cap:
-                    congestion += station.init_station_load + station.init_flat_station_load - station.outgoing_rate * \
-                                  self.time_horizon - station.station_cap
-        self.deviations = dev
-        self.congestion = congestion
-
-    def calculate_reward(self):
-        reward = 0
+            bat_load = min(self.starting_station.current_battery_bikes, self.vehicle.available_capacity())
+            bat_unload = min(self.vehicle.current_battery_bikes, self.starting_station.available_parking())
+            flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_capacity())
+            flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
+            swap = self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes
+        self.upper_extremes = [swap, bat_load, bat_unload, flat_load, flat_unload]
+        added_time = np.sum(self.upper_extremes) * self.handling_time
+        self.length += added_time
         for i in range(len(self.station_visits)):
-            if self.station_visits[i] > self.time_horizon:
-                reward += self.activity[i][0]
-        self.reward = reward
+            self.station_visits[i] += added_time
+
+    def permutations(self):
+        pat = list()
+        for swap in [0, self.upper_extremes[0]]:
+            for bat_load in [0, self.upper_extremes[1]]:
+                for bat_unload in [0, self.upper_extremes[2]]:
+                    for flat_load in [0, self.upper_extremes[3]]:
+                        for flat_unload in [0, self.upper_extremes[4]]:
+                            pat.append([swap, bat_load, bat_unload, flat_load, flat_unload])
+        self.patterns = list(set(tuple(val) for val in pat))
 
 
 class GenerateColumns:
 
-    flexibility = 5
+    flexibility = 7
+    all_stations = generate_all_stations('A')
+    branching = 2
+    average_handling_time = 3
 
     def __init__(self, starting_st):
-        starting_station_id = starting_st
-        time_horizon = 25
-        branching = 5
+        self.starting_station = get_station_from_id(starting_st, GenerateColumns.all_stations)
+        self.time_horizon = 25
+        self.vehicle = Vehicle(5, 5, 5)
+        self.finished_cols = None
+        self.patterns = None
 
     def get_columns(self):
         finished_routes = list()
-        construction_routes = []
-        while True:
-            pass
+        construction_routes = [Column(self.starting_station, self.vehicle)]
+        while construction_routes:
+            for col in construction_routes:
+                if col.length < (self.time_horizon - GenerateColumns.flexibility):
+                    candidates = col.starting_station.get_candidate_stations(
+                        GenerateColumns.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=3)
+                    # SORT CANDIDATES BASED ON CRITICALITY HERE?
+                    for j in range(GenerateColumns.branching):
+                        new_col = copy.deepcopy(col)
+                        if len(new_col.stations) == 1:
+                            new_col.add_station(candidates[j][0], candidates[j][1])
+                        else:
+                            new_col.add_station(candidates[j][0], candidates[j][1] + GenerateColumns.average_handling_time)
+                        construction_routes.append(new_col)
+                else:
+                    col.generate_extreme_pattern()
+                    col.permutations()
+                    finished_routes.append(col)
+                construction_routes.remove(col)
+        self.finished_cols = finished_routes
+
+
+gen = GenerateColumns('388')
+gen.get_columns()
+for col in gen.finished_cols:
+    route = ""
+    for sta in col.stations:
+        route += " " + sta.id
