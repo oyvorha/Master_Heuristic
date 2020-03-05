@@ -19,19 +19,20 @@ class Station:
             self.current_battery_bikes = bat_load
             self.current_flat_bikes = flat_load
 
-        def get_candidate_stations(self, station_list, max_candidates=7, max_time=25):
+        def get_candidate_stations(self, station_list, tabu_list=None, max_candidates=7, max_time=25):
             closest_stations = list()
             for station in station_list:
-                id_key = str(self.id) + '_' + str(station.id)
-                with open("Input/times.json", 'r') as f:
-                    time_json = json.load(f)
-                    st_time = time_json[id_key][0]
-                    if len(closest_stations) < max_candidates and st_time < max_time:
-                        closest_stations.append([station, st_time])
-                    else:
-                        if closest_stations[-1][-1] > st_time:
-                            closest_stations[-1] = [station, st_time]
-                closest_stations = sorted(closest_stations, key=lambda l: l[1])
+                if station.id not in tabu_list:
+                    id_key = str(self.id) + '_' + str(station.id)
+                    with open("Input/times.json", 'r') as f:
+                        time_json = json.load(f)
+                        st_time = time_json[id_key][0]
+                        if len(closest_stations) < max_candidates and st_time < max_time:
+                            closest_stations.append([station, st_time])
+                        else:
+                            if closest_stations[-1][-1] > st_time:
+                                closest_stations[-1] = [station, st_time]
+                    closest_stations = sorted(closest_stations, key=lambda l: l[1])
             return closest_stations
 
         def change_battery_load(self, battery_bikes):
