@@ -2,7 +2,6 @@ import json
 from Station import Station
 from vehicle import Vehicle
 import copy
-import numpy as np
 
 
 def generate_all_stations(scenario):
@@ -41,13 +40,8 @@ class Column:
         self.length = 0
         self.station_visits = [0]
         self.upper_extremes = None
-        self.violations = 0
-        self.deviations = 0
-        self.congestion = 0
-        self.reward = 0
         self.time_horizon = time_hor
         self.vehicle = vehicle
-        self.patterns = list()
         self.handling_time = 0.5
 
     def add_station(self, station, added_station_time):
@@ -64,35 +58,21 @@ class Column:
             flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
             swap = self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes
         self.upper_extremes = [swap, bat_load, bat_unload, flat_load, flat_unload]
-        added_time = np.sum(self.upper_extremes) * self.handling_time
-        self.length += added_time
-        for i in range(len(self.station_visits)):
-            self.station_visits[i] += added_time
-
-    def permutations(self):
-        pat = list()
-        for swap in [0, self.upper_extremes[0]]:
-            for bat_load in [0, self.upper_extremes[1]]:
-                for bat_unload in [0, self.upper_extremes[2]]:
-                    for flat_load in [0, self.upper_extremes[3]]:
-                        for flat_unload in [0, self.upper_extremes[4]]:
-                            pat.append([swap, bat_load, bat_unload, flat_load, flat_unload])
-        self.patterns = list(set(tuple(val) for val in pat))
 
 
 class GenerateColumns:
 
     flexibility = 7
-    all_stations = generate_all_stations('A')
     branching = 2
     average_handling_time = 3
 
-    def __init__(self, starting_st):
-        self.starting_station = get_station_from_id(starting_st, GenerateColumns.all_stations)
+    def __init__(self, starting_st, stations):
+        self.starting_station = get_station_from_id(starting_st, self.all_stations)
         self.time_horizon = 25
         self.vehicle = Vehicle(5, 5, 5)
         self.finished_cols = None
         self.patterns = None
+        self.all_stations = stations
 
     def get_columns(self):
         finished_routes = list()
@@ -101,7 +81,7 @@ class GenerateColumns:
             for col in construction_routes:
                 if col.length < (self.time_horizon - GenerateColumns.flexibility):
                     candidates = col.starting_station.get_candidate_stations(
-                        GenerateColumns.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=3)
+                        self.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=3)
                     # SORT CANDIDATES BASED ON CRITICALITY HERE?
                     for j in range(GenerateColumns.branching):
                         new_col = copy.deepcopy(col)
@@ -112,15 +92,18 @@ class GenerateColumns:
                         construction_routes.append(new_col)
                 else:
                     col.generate_extreme_pattern()
-                    col.permutations()
                     finished_routes.append(col)
                 construction_routes.remove(col)
         self.finished_cols = finished_routes
+        self.gen_patterns()
 
-
-gen = GenerateColumns('388')
-gen.get_columns()
-for col in gen.finished_cols:
-    route = ""
-    for sta in col.stations:
-        route += " " + sta.id
+    def gen_patterns(self):
+        rep_col = self.finished_cols[0]
+        pat = list()
+        for swap in [0, rep_col.upper_extremes[0]]:
+            for bat_load in [0, rep_col.upper_extremes[1]]:
+                for bat_unload in [0, rep_col.upper_extremes[2]]:
+                    for flat_load in [0, rep_col.upper_extremes[3]]:
+                        for flat_unload in [0, rep_col.upper_extremes[4]]:
+                            pat.append([swap, bat_load, bat_unload, flat_load, flat_unload])
+        self.patterns = list(set(tuple(val) for val in pat))
