@@ -1,4 +1,4 @@
-from generate_column import *
+from generate_route_pattern import *
 import numpy as np
 import random
 
@@ -10,7 +10,7 @@ class ModelManager:
     congestion_list = []
 
     def __init__(self, start_station_id):
-        self.gen = GenerateColumns(start_station_id, ModelManager.stations)
+        self.gen = GenerateRoutePattern(start_station_id, ModelManager.stations)
         self.congestion_list = None
         self.starvation_list = None
 
