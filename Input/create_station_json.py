@@ -11,25 +11,23 @@ length_time_interval = 120
 stations = {}
 
 
-def read_excel():
+def read_excel_and_set_rates():
     df_stations = pd.read_excel(file, sheet_name)
     for index, row in df_stations.iterrows():
         interval_scenarios = {}
         for scenario in scenarios:
-            init_load = round(battery_rate * float(row[scenario+'_start_load']), 3)
-            init_flat_load = round(flat_rate * float(row[scenario + '_start_load']), 3)
-            incoming_battery_rate = round(battery_rate * float(row[scenario + '_incoming'])/length_time_interval, 3)
-            incoming_flat_rate = round(flat_rate * float(row[scenario + '_incoming'])/length_time_interval, 3)
-            outgoing_rate = round(float(row[scenario + '_outgoing_rate']) / length_time_interval, 3)
-            demand = calculate_demand(float(row[scenario + '_outgoing_rate']), row[scenario+'_empty'])
-            interval_scenarios[scenario] = [init_load, init_flat_load, incoming_battery_rate, incoming_flat_rate,
-                                            outgoing_rate, demand]
+            full_station_time = 10  # Temporary guess: Read from DB!!
+            init_load = round(battery_rate * float(row[scenario+'_start_load']), 0)
+            init_flat_load = round(flat_rate * float(row[scenario + '_start_load']), 0)
+            battery_docker_rate = round(battery_rate * float(row[scenario + '_incoming'])/(
+                    length_time_interval - full_station_time), 3)
+            flat_docker_rate = round(flat_rate * float(row[scenario + '_incoming'])/(
+                    length_time_interval - full_station_time), 3)
+            battery_user_rate = round(float(row[scenario + '_outgoing_rate']) / (
+                    length_time_interval - row[scenario+'_empty']), 3)
+            interval_scenarios[scenario] = [init_load, init_flat_load, battery_docker_rate, flat_docker_rate,
+                                            battery_user_rate]
         stations[int(row['Station_ID'])] = [row['Latitude'], row['Longitude'], interval_scenarios]
-
-
-def calculate_demand(trips, empty_time):
-    demand_rate = trips / (length_time_interval - empty_time)
-    return round(demand_rate, 2)
 
 
 def write_json(json_element):
@@ -37,5 +35,5 @@ def write_json(json_element):
         json.dump(json_element, fp)
 
 
-read_excel()
+read_excel_and_set_rates()
 write_json(stations)
