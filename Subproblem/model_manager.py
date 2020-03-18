@@ -16,6 +16,7 @@ class ModelManager:
         self.starting_station = ModelManager.stations[ModelManager.get_index(start_station_id)]
         self.vehicle = vehicle
         self.gen = GenerateRoutePattern(self.starting_station, ModelManager.stations, vehicle)
+        self.gen.get_columns()
         self.congestion_list = None
         self.starvation_list = None
 
@@ -38,7 +39,7 @@ class ModelManager:
     @staticmethod
     def get_index(station_id):
         for i in range(len(ModelManager.stations)):
-            if ModelManager.stations[i] == station_id:
+            if ModelManager.stations[i].id == station_id:
                 return i
 
     @staticmethod
