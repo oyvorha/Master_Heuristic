@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 
-def run_model(model_manager, fixed):
+def run_model(parameters):
 
     try:
         m = Model("Heuristic")
@@ -11,43 +11,43 @@ def run_model(model_manager, fixed):
         start_time = time.time()
 
         # ------ SETS -----------------------------------------------------------------------------
-        Stations = model_manager.stations
+        Stations = parameters.stations
         Charging_stations = Stations[5:-1]
         Non_Charging_stations = Stations[1:4]
         Swap_Stations = Stations[1:-1]
 
         # ------ INDICES --------------------------------------------------------------------------
-        o = model_manager.starting_index
+        o = 0
 
         # ------ PARAMETERS -----------------------------------------------------------------------
-        A = model_manager.matrix
-        time_horizon = fixed.time_horizon
-        T = model_manager.visits
-        Q_BV = fixed.vehicle_bat_caps
-        Q_CV = fixed.vehicle_bike_caps
-        Q_S = fixed.station_caps
-        Q_B = model_manager.pattern_b
-        Q_CCL = model_manager.pattern_ccl
-        Q_FCL = model_manager.pattern_fcl
-        Q_CCU = model_manager.pattern_ccu
-        Q_FCU = model_manager.pattern_fcu
-        L_BV = model_manager.init_bat_load
-        L_CV = model_manager.init_bat_bike_load
-        L_FV = model_manager.init_flat_bike_load
-        L_CS = model_manager.init_battery_station_load
-        L_FS = model_manager.init_flat_station_load
-        I_OC = model_manager.demand
-        I_IC = model_manager.incoming_charged_bikes
-        I_IF = model_manager.incoming_flat_bikes
+        A = parameters.A_matrix
+        # time_horizon = parameters.time_horizon
+        # T = parameters.visits
+        Q_BV = parameters.Q_BV
+        Q_CV = parameters.Q_CV
+        Q_S = parameters.Q_S
+        Q_B = parameters.Q_B
+        Q_CCL = parameters.Q_CCL
+        Q_FCL = parameters.Q_FCL
+        Q_CCU = parameters.Q_CCU
+        Q_FCU = parameters.Q_FCU
+        L_BV = parameters.L_BV
+        L_CV = parameters.L_CV
+        L_FV = parameters.L_FV
+        L_CS = parameters.L_CS
+        L_FS = parameters.L_FS
+        I_OC = parameters.I_OC
+        I_IC = parameters.I_IC
+        I_IF = parameters.I_IF
 
-        V_TbarS = model_manager.starvation_tbar
-        V_TS = model_manager.starvation_t
-        V_TbarC = model_manager.congestion_tbar
-        V_TC = model_manager.congestion_t
+        V_TbarS = parameters.V_TbarS
+        V_TS = parameters.V_TS
+        V_TbarC = parameters.V_TbarC
+        V_TC = parameters.V_TC
 
-        W_V = fixed.weight_violations
-        W_D = fixed.weight_deviations
-        W_R = fixed.weight_reward
+        W_V = parameters.W_V
+        # W_D = parameters.weight_deviations
+        # W_R = parameters.weight_reward
 
         # ------ VARIABLES ------------------------------------------------------------------------
         q_B = m.addVars({i for i in Swap_Stations}, vtype=GRB.CONTINUOUS, lb=0, name="q_B")
