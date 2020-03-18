@@ -1,6 +1,6 @@
-from generate_route_pattern import *
+from generate_route_pattern import generate_all_stations, GenerateRoutePattern
 from parameters_subproblem import ParameterSub
-from .vehicle import Vehicle
+from vehicle import Vehicle
 from subproblem_model import run_model
 import numpy as np
 import random
