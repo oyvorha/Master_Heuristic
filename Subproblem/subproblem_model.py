@@ -12,12 +12,13 @@ def run_model(parameters):
 
         # ------ SETS -----------------------------------------------------------------------------
         Stations = parameters.stations
-        Charging_stations = Stations[5:-1]
-        Non_Charging_stations = Stations[1:4]
+        Charging_stations = parameters.charging_stations
+        Non_Charging_stations = parameters.non_charging_stations
         Swap_Stations = Stations[1:-1]
 
         # ------ INDICES --------------------------------------------------------------------------
-        o = 0
+        # Starting station
+        o = 1
 
         # ------ PARAMETERS -----------------------------------------------------------------------
         A = parameters.A_matrix
@@ -84,9 +85,9 @@ def run_model(parameters):
         A_sum_j = np.sum(A, axis=0)
         for i in Non_Charging_stations:
             if i != o:
-                m.addConstr(q_B[i] <= L_FS[i] + q_FCU[i]- q_FCL[i])
+                m.addConstr(q_B[i] <= L_FS[i] + q_FCU[i] - q_FCL[i])
                 m.addConstr(q_FCL[i] <= L_FS[i])
-                m.addConstr(q_[i] - Q_S * A_sum_j[i] <= 0)
+                m.addConstr(q_B[i] - Q_S[i] * A_sum_j[i] <= 0)
         for i in Swap_Stations:
             if i != o:
                 m.addConstr(q_CCL[i] <= L_CS[i])
@@ -96,13 +97,15 @@ def run_model(parameters):
 
         # Violations
         # Situation 2
-        m.addConstr(L_CS[i] + q_B[i] + q_CCU[i] - q_CCL[i] + I_IC[i] - I_OC[i] + v_S[i] >= 0 for i in Swap_Stations)
-        m.addConstr(L_CS[i] + q_CCU[i] - q_CCL[i] + L_FS[i] + q_FCU[i] - q_FCL[i] + I_IC[i] + I_IF[i] - I_OC[i] +
+        m.addConstrs(L_CS[i] + q_B[i] + q_CCU[i] - q_CCL[i] + I_IC[i] - I_OC[i] + v_S[i] >= 0 for i in Swap_Stations)
+        m.addConstrs(L_CS[i] + q_CCU[i] - q_CCL[i] + L_FS[i] + q_FCU[i] - q_FCL[i] + I_IC[i] + I_IF[i] - I_OC[i] +
                     v_S[i] - v_C[i] <= Q_S[i] for i in Swap_Stations)
 
         # ------ OBJECTIVE -----------------------------------------------------------------------
-        m.setObjective(W_V * (v_S.sum('*') + V_TbarS.sum('*') + V_TS.sum('*') + v_C.sum('*') + V_TbarC.sum('*') +
-                              V_TC.sum('*')), GRB.MINIMIZE)
+        m.setObjective(W_V * (v_S.sum('*') + np.sum(V_TbarS) + np.sum(V_TbarS) + v_C.sum('*') + np.sum(V_TbarC) +
+                              np.sum(V_TC)), GRB.MINIMIZE)
+
+        m.optimize()
 
         print(time.time() - start_time)
         return m
