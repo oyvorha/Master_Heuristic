@@ -4,11 +4,12 @@ import json
 class Station:
 
         def __init__(self, longitude, latitude, bat_load, flat_load, incoming_charged_bike_rate, incoming_flat_bike_rate,
-                     outgoing_charged_bike_rate, ideal_state, station_id, station_cap=20):
+                     outgoing_charged_bike_rate, ideal_state, station_id, station_cap=20, charging=False):
             self.id = station_id
             self.longitude = longitude
             self.latitude = latitude
             self.station_cap = station_cap
+            self.charging_station = charging
 
             # The following varies with scenario
             self.init_station_load = bat_load
