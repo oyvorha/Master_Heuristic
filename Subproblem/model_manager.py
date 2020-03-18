@@ -1,12 +1,14 @@
 from generate_route_pattern import *
-from Subproblem.fixed_parameters import Fixed
+from parameters_subproblem import ParameterSub
+from .vehicle import Vehicle
+from subproblem_model import run_model
 import numpy as np
 import random
 
 
 class ModelManager:
 
-    stations = generate_all_stations('A')
+    stations = generate_all_stations('A')[:10]
     starvation_list = []
     congestion_list = []
 
@@ -17,8 +19,11 @@ class ModelManager:
         self.congestion_list = None
         self.starvation_list = None
 
-    def run_one_subproblem(self, route, pattern, vehicle, customer_arrivals):
-        pass
+    def run_one_subproblem(self, route, pattern):
+        customer_arrivals = ModelManager.poisson_draw(route)
+        base_viol = [[5, 10, 15, 5] for i in range(len(route.stations))]
+        params = ParameterSub(route.stations, self.vehicle, pattern, customer_arrivals, base_viol)
+        run_model(params)
 
     @staticmethod
     def create_A_matrix(column):
@@ -37,8 +42,16 @@ class ModelManager:
                 return i
 
     @staticmethod
-    def poisson_draw(intensity_rate, time):
-        pass
+    def poisson_draw(route):
+        # Returns Poisson draw for incoming charged bikes, incoming flat bikes, outgoing charged bikes at time of visit
+        arrivals = list()
+        for i in range(len(route.stations)):
+            st_arrivals = list()
+            st_arrivals.append(np.random.poisson(route.stations[i].incoming_charged_bike_rate * route.station_visits[i]))
+            st_arrivals.append(np.random.poisson(route.stations[i].incoming_flat_bike_rate * route.station_visits[i]))
+            st_arrivals.append(np.random.poisson(route.stations[i].outgoing_charged_bike_rate * route.station_visits[i]))
+            arrivals.append(st_arrivals)
+        return arrivals
 
     def get_violations(self):
         starvation_list = []
