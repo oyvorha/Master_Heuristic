@@ -5,6 +5,14 @@ class ParameterSub:
 
     def __init__(self, route_stations, vehicle, pattern, customer_arrivals, base_violations):
         self.A_matrix = ParameterSub.create_A_matrix_subproblem(route_stations)
+        self.stations = [i for i in range(len(route_stations)+2)]
+        self.charging_stations = list()
+        self.non_charging_stations = list()
+        for i in range(len(route_stations)):
+            if route_stations[i].charging_station:
+                self.charging_stations.append(i+1)
+            else:
+                self.non_charging_stations.append(i+1)
 
         # Pattern
         self.Q_B = pattern[0]
@@ -14,12 +22,12 @@ class ParameterSub:
         self.Q_FCU = pattern[4]
 
         # Station specific
-        self.Q_S = [station.station_cap for station in route_stations]
-        self.L_CS = [station.init_battery_station_load for station in route_stations]
-        self.L_FS = [station.init_flat_station_load for station in route_stations]
-        self.I_IC = [customer_arrivals[i][0] for i in range(len(customer_arrivals))]
-        self.I_FC = [customer_arrivals[i][1] for i in range(len(customer_arrivals))]
-        self.I_OC = [customer_arrivals[i][2] for i in range(len(customer_arrivals))]
+        self.Q_S = [0] + [station.station_cap for station in route_stations] + [0]
+        self.L_CS = [0] + [station.init_station_load for station in route_stations] + [0]
+        self.L_FS = [0] + [station.init_flat_station_load for station in route_stations] + [0]
+        self.I_IC = [0] + [customer_arrivals[i][0] for i in range(len(customer_arrivals))] + [0]
+        self.I_IF = [0] + [customer_arrivals[i][1] for i in range(len(customer_arrivals))] + [0]
+        self.I_OC = [0] + [customer_arrivals[i][2] for i in range(len(customer_arrivals))] + [0]
 
         # Vehicle specific
         self.Q_BV = vehicle.battery_capacity
@@ -29,17 +37,17 @@ class ParameterSub:
         self.L_FV = vehicle.current_battery_bikes
 
         # Base Violations
-        self.V_TS = [base_violations[i][0] for i in range(len(base_violations))]
-        self.V_TC = [base_violations[i][1] for i in range(len(base_violations))]
-        self.V_TbarS = [base_violations[i][2] for i in range(len(base_violations))]
-        self.V_TbarC = [base_violations[i][3] for i in range(len(base_violations))]
+        self.V_TS = [0] + [base_violations[i][0] for i in range(len(base_violations))] + [0]
+        self.V_TC = [base_violations[i][1] for i in range(len(base_violations))] + [0]
+        self.V_TbarS = [0] + [base_violations[i][2] for i in range(len(base_violations))] + [0]
+        self.V_TbarC = [0] + [base_violations[i][3] for i in range(len(base_violations))] + [0]
 
         # Weights
         self.W_V = 1
 
     @staticmethod
     def create_A_matrix_subproblem(route_stations):
-        A = np.zeros((len(route_stations), len(route_stations)))
-        for i in range(len(route_stations) - 1):
+        A = np.zeros((len(route_stations)+2, len(route_stations)+2))
+        for i in range(len(route_stations) + 1):
             A[i][i + 1] = 1
         return A
