@@ -14,22 +14,15 @@ def generate_all_stations(scenario):
         longitude = float(station[1])
         init_battery_load = station[2][scenario][0]
         init_flat_load = station[2][scenario][1]
-        incoming_battery_rate = station[2][scenario][2]
-        incoming_flat_rate = station[2][scenario][3]
-        outgoing_rate = station[2][scenario][4]
-        demand = station[2][scenario][5]
+        incoming_charged_bike_rate = station[2][scenario][2]
+        incoming_flat_bike_rate = station[2][scenario][3]
+        outgoing_charged_bike_rate = station[2][scenario][4]
         ideal_state = 10
         obj = Station(latitude, longitude, init_battery_load, init_flat_load
-                      , incoming_battery_rate, incoming_flat_rate, outgoing_rate,
-                      demand, ideal_state, id)
+                      , incoming_charged_bike_rate, incoming_flat_bike_rate, outgoing_charged_bike_rate, ideal_state,
+                      id)
         station_objects.append(obj)
     return station_objects
-
-
-def get_station_from_id(id, stations):
-    for station in stations:
-        if station.id == id:
-            return station
 
 
 class Route:
@@ -66,10 +59,10 @@ class GenerateRoutePattern:
     branching = 2
     average_handling_time = 3
 
-    def __init__(self, starting_st, stations):
-        self.starting_station = get_station_from_id(starting_st, self.all_stations)
+    def __init__(self, starting_st, stations, vehicle):
+        self.starting_station = starting_st
         self.time_horizon = 25
-        self.vehicle = Vehicle(5, 5, 5)
+        self.vehicle = vehicle
         self.finished_gen_routes = None
         self.patterns = None
         self.all_stations = stations

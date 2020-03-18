@@ -1,4 +1,5 @@
 from generate_route_pattern import *
+from Subproblem.fixed_parameters import Fixed
 import numpy as np
 import random
 
@@ -9,10 +10,15 @@ class ModelManager:
     starvation_list = []
     congestion_list = []
 
-    def __init__(self, start_station_id):
-        self.gen = GenerateRoutePattern(start_station_id, ModelManager.stations)
+    def __init__(self, start_station_id, vehicle=Vehicle(5, 5, 5)):
+        self.starting_station = ModelManager.stations[ModelManager.get_index(start_station_id)]
+        self.vehicle = vehicle
+        self.gen = GenerateRoutePattern(self.starting_station, ModelManager.stations, vehicle)
         self.congestion_list = None
         self.starvation_list = None
+
+    def run_one_subproblem(self, route, pattern, vehicle, customer_arrivals):
+        pass
 
     @staticmethod
     def create_A_matrix(column):
@@ -29,6 +35,10 @@ class ModelManager:
         for i in range(len(ModelManager.stations)):
             if ModelManager.stations[i] == station_id:
                 return i
+
+    @staticmethod
+    def poisson_draw(intensity_rate, time):
+        pass
 
     def get_violations(self):
         starvation_list = []

@@ -104,5 +104,8 @@ def run_model(model_manager, fixed):
         m.setObjective(W_V * (v_S.sum('*') + V_TbarS.sum('*') + V_TS.sum('*') + v_C.sum('*') + V_TbarC.sum('*') +
                               V_TC.sum('*')), GRB.MINIMIZE)
 
+        print(time.time() - start_time)
+        return m
+
     except GurobiError:
             print(GurobiError.message)
