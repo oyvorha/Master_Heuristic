@@ -39,14 +39,14 @@ class Route:
     def add_station(self, station, added_station_time):
         self.stations.append(station)
         self.length += added_station_time
-        self.station_visits.append(self.length + added_station_time)
+        self.station_visits.append(self.length)
 
     def generate_extreme_decisions(self, policy='greedy'):
         swap, bat_load, bat_unload, flat_load, flat_unload = (0, 0, 0, 0, 0)
         if policy == 'greedy':
-            bat_load = min(self.starting_station.current_battery_bikes, self.vehicle.available_capacity())
-            bat_unload = min(self.vehicle.current_battery_bikes, self.starting_station.available_parking())
-            flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_capacity())
+            bat_load = min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity())
+            bat_unload = min(self.vehicle.current_charged_bikes, self.starting_station.available_parking())
+            flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_bike_capacity())
             flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
             swap = self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes
         self.upper_extremes = [swap, bat_load, bat_unload, flat_load, flat_unload]
