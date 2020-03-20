@@ -3,38 +3,29 @@ from parameters_subproblem import ParameterSub
 from vehicle import Vehicle
 from subproblem_model import run_model
 import numpy as np
-import random
 
 
 class ModelManager:
 
-    stations = generate_all_stations('A')[:10]
-    starvation_list = []
-    congestion_list = []
+    stations = generate_all_stations('A')[:30]
+    time_horizon = 25
 
     def __init__(self, start_station_id, vehicle=Vehicle(5, 5, 5)):
         self.starting_station = ModelManager.stations[ModelManager.get_index(start_station_id)]
         self.vehicle = vehicle
         self.gen = GenerateRoutePattern(self.starting_station, ModelManager.stations, vehicle)
         self.gen.get_columns()
-        self.congestion_list = None
-        self.starvation_list = None
+
+    def run_all_subproblems(self):
+        for route in self.gen.finished_gen_routes:
+            for pattern in self.gen.patterns:
+                self.run_one_subproblem(route, pattern)
 
     def run_one_subproblem(self, route, pattern):
         customer_arrivals = ModelManager.poisson_draw(route)
         base_viol = [[5, 10, 15, 5] for i in range(len(route.stations))]
         params = ParameterSub(route.stations, self.vehicle, pattern, customer_arrivals, base_viol)
         run_model(params)
-
-    @staticmethod
-    def create_A_matrix(column):
-        A = np.zeros((len(ModelManager.stations), len(ModelManager.stations)))
-        route = [st.id for st in column.stations]
-        for i in range(len(route)-1):
-            st1 = ModelManager.get_index(route[i])
-            st2 = ModelManager.get_index(route[i+1])
-            A[st1][st2] = 1
-        return A
 
     @staticmethod
     def get_index(station_id):
