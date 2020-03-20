@@ -72,13 +72,18 @@ class ModelManager:
         return times
 
     @staticmethod
-    def get_base_inventory(station, visit_time_float):
+    def get_base_inventory(station, visit_time_float, test_mode=None):
         visit_time = int(visit_time_float)
         L_CS = station.current_battery_bikes
         L_FS = station.current_flat_bikes
-        incoming_charged_bike_times = ModelManager.poisson_simulation(station.incoming_charged_bike_rate, visit_time)
-        incoming_flat_bike_times = ModelManager.poisson_simulation(station.incoming_charged_bike_rate, visit_time)
-        outgoing_charged_bike_times = ModelManager.poisson_simulation(station.outgoing_charged_bike_rate, visit_time)
+        if test_mode:
+            incoming_charged_bike_times = test_mode[0]
+            incoming_flat_bike_times = test_mode[1]
+            outgoing_charged_bike_times = test_mode[2]
+        else:
+            incoming_charged_bike_times = ModelManager.poisson_simulation(station.incoming_charged_bike_rate, visit_time)
+            incoming_flat_bike_times = ModelManager.poisson_simulation(station.incoming_charged_bike_rate, visit_time)
+            outgoing_charged_bike_times = ModelManager.poisson_simulation(station.outgoing_charged_bike_rate, visit_time)
         for i in range(visit_time):
             c1 = incoming_charged_bike_times.count(i)
             c2 = incoming_flat_bike_times.count(i)
