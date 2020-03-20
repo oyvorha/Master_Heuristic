@@ -23,8 +23,16 @@ class ModelManager:
 
     def run_one_subproblem(self, route, pattern):
         customer_arrivals = ModelManager.poisson_draw(route)
-        base_viol = [[5, 10, 15, 5] for i in range(len(route.stations))]
-        params = ParameterSub(route.stations, self.vehicle, pattern, customer_arrivals, base_viol)
+        L_CS = list()
+        L_FS = list()
+        base_viol = list()
+        for i in range(len(route.stations)):
+            st_L_CS, st_L_FS = self.get_base_inventory(route.stations[i], route.station_visits[i])
+            st_viol = ModelManager.get_base_violations(route.stations[i], st_L_CS, st_L_FS, customer_arrivals[i])
+            L_CS.append(st_L_CS)
+            L_FS.append(st_L_FS)
+            base_viol.append(st_viol)
+        params = ParameterSub(route.stations, self.vehicle, pattern, customer_arrivals, L_CS, L_FS, base_viol)
         run_model(params)
 
     @staticmethod
@@ -33,34 +41,65 @@ class ModelManager:
             if ModelManager.stations[i].id == station_id:
                 return i
 
+    """
+    Returns Poisson draw for incoming charged bikes, incoming flat bikes, outgoing charged bikes from time of visit 
+    to time horizon
+    """
     @staticmethod
     def poisson_draw(route):
-        # Returns Poisson draw for incoming charged bikes, incoming flat bikes, outgoing charged bikes at time of visit
         arrivals = list()
         for i in range(len(route.stations)):
-            st_arrivals = list()
-            st_arrivals.append(np.random.poisson(route.stations[i].incoming_charged_bike_rate * route.station_visits[i]))
-            st_arrivals.append(np.random.poisson(route.stations[i].incoming_flat_bike_rate * route.station_visits[i]))
-            st_arrivals.append(np.random.poisson(route.stations[i].outgoing_charged_bike_rate * route.station_visits[i]))
-            arrivals.append(st_arrivals)
+            if route.station_visits[i] > ModelManager.time_horizon:
+                arrivals.append([0, 0, 0])
+            else:
+                st_arrivals = list()
+                st_arrivals.append(np.random.poisson(route.stations[i].incoming_charged_bike_rate *
+                                                     (ModelManager.time_horizon - route.station_visits[i])))
+                st_arrivals.append(np.random.poisson(route.stations[i].incoming_flat_bike_rate *
+                                                     (ModelManager.time_horizon - route.station_visits[i])))
+                st_arrivals.append(np.random.poisson(route.stations[i].outgoing_charged_bike_rate *
+                                                     (ModelManager.time_horizon - route.station_visits[i])))
+                arrivals.append(st_arrivals)
         return arrivals
 
-    def get_violations(self):
-        starvation_list = []
-        congestion_list = []
-        for station in ModelManager.stations:
-            violation_starvation = 0
-            violation_congestion = 0
-            batt_load_timehorizon = random.randint(-10, 10)  # edit to poisson process draw
-            flat_load_timehorizon = random.randint(0, 10)  # edit to poisson process draw
-            real_batt_load = batt_load_timehorizon
-            real_flat_load = flat_load_timehorizon
-            if batt_load_timehorizon < 0:
-                violation_starvation = -batt_load_timehorizon
-                real_batt_load = 0
-            if real_batt_load + real_flat_load > 12:  # change 12 to station cap
-                violation_congestion = real_batt_load + real_flat_load - 12  # change 12 to station cap
-            starvation_list.append(violation_starvation)
-            congestion_list.append(violation_congestion)
-        self.starvation_list = starvation_list
-        self.congestion_list = congestion_list
+    @staticmethod
+    def poisson_simulation(intensity_rate, time_steps):
+        times = list()
+        for t in range(time_steps):
+            arrival = np.random.poisson(intensity_rate * time_steps)
+            for i in range(arrival):
+                times.append(t)
+        return times
+
+    @staticmethod
+    def get_base_inventory(station, visit_time_float):
+        visit_time = int(visit_time_float)
+        L_CS = station.current_battery_bikes
+        L_FS = station.current_flat_bikes
+        incoming_charged_bike_times = ModelManager.poisson_simulation(station.incoming_charged_bike_rate, visit_time)
+        incoming_flat_bike_times = ModelManager.poisson_simulation(station.incoming_charged_bike_rate, visit_time)
+        outgoing_charged_bike_times = ModelManager.poisson_simulation(station.outgoing_charged_bike_rate, visit_time)
+        for i in range(visit_time):
+            c1 = incoming_charged_bike_times.count(i)
+            c2 = incoming_flat_bike_times.count(i)
+            c3 = outgoing_charged_bike_times.count(i)
+            L_CS = max(0, min(station.station_cap - L_FS, L_CS + c1 - c3))
+            L_FS = min(station.station_cap - L_CS, L_FS + c2)
+        return L_CS, L_FS
+
+    """
+    Returning base violations from time of visit to time horizon. Assuming optimal sequencing of customer arrivals
+    """
+    @staticmethod
+    def get_base_violations(station, visit_inventory_charged, visit_inventory_flat, customer_arrivals):
+        incoming_charged_bikes = customer_arrivals[0]
+        incoming_flat_bikes = customer_arrivals[1]
+        outgoing_charged_bikes = customer_arrivals[2]
+        starvation = max(0, visit_inventory_charged + incoming_charged_bikes - outgoing_charged_bikes)
+        congestion = max(0, visit_inventory_charged + visit_inventory_flat + incoming_charged_bikes
+                         + incoming_flat_bikes - outgoing_charged_bikes - station.station_cap)
+        return starvation + congestion
+
+
+manager = ModelManager('378')
+manager.run_one_subproblem(manager.gen.finished_gen_routes[0], manager.gen.patterns[0])
