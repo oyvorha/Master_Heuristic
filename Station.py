@@ -3,7 +3,7 @@ import json
 
 class Station:
 
-        def __init__(self, longitude, latitude, bat_load, flat_load, incoming_charged_bike_rate, incoming_flat_bike_rate,
+        def __init__(self, longitude, latitude, charged_load, flat_load, incoming_charged_bike_rate, incoming_flat_bike_rate,
                      outgoing_charged_bike_rate, ideal_state, station_id, station_cap=20, charging=False):
             self.id = station_id
             self.longitude = longitude
@@ -12,13 +12,13 @@ class Station:
             self.charging_station = charging
 
             # The following varies with scenario
-            self.init_station_load = bat_load
+            self.init_station_load = charged_load
             self.init_flat_station_load = flat_load
             self.incoming_charged_bike_rate = incoming_charged_bike_rate
             self.incoming_flat_bike_rate = incoming_flat_bike_rate
             self.outgoing_charged_bike_rate = outgoing_charged_bike_rate
             self.ideal_state = ideal_state
-            self.current_battery_bikes = bat_load
+            self.current_charged_bikes = charged_load
             self.current_flat_bikes = flat_load
 
         def get_candidate_stations(self, station_list, tabu_list=None, max_candidates=7, max_time=25):
@@ -37,13 +37,19 @@ class Station:
                     closest_stations = sorted(closest_stations, key=lambda l: l[1])
             return closest_stations
 
-        def change_battery_load(self, battery_bikes):
-            self.current_battery_bikes += battery_bikes
-            if self.current_battery_bikes + self.current_flat_bikes > self.station_cap:
-                print("FULL STATION!!!!")
+        def change_charged_load(self, charged_bikes):
+            self.current_charged_bikes += charged_bikes
+            if self.current_charged_bikes + self.current_flat_bikes > self.station_cap:
+                self.current_charged_bikes = self.station_cap - self.current_flat_bikes
+            if self.current_charged_bikes < 0:
+                self.current_charged_bikes = 0
 
         def change_flat_load(self, flat_bikes):
             self.current_flat_bikes += flat_bikes
+            if self.current_charged_bikes + self.current_flat_bikes > self.station_cap:
+                self.current_flat_bikes = self.station_cap - self.current_charged_bikes
+            if self.current_flat_bikes < 0:
+                self.current_flat_bikes = 0
 
         def available_parking(self):
-            return max(0, self.station_cap - self.current_flat_bikes + self.current_battery_bikes)
+            return max(0, self.station_cap - self.current_flat_bikes + self.current_charged_bikes)
