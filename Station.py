@@ -46,4 +46,4 @@ class Station:
             self.current_flat_bikes += flat_bikes
 
         def available_parking(self):
-            return max(0, self.current_flat_bikes + self.current_battery_bikes - self.station_cap)
+            return max(0, self.station_cap - self.current_flat_bikes + self.current_battery_bikes)
