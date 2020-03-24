@@ -29,7 +29,6 @@ class RouteGenTester(unittest.TestCase):
             route.add_station(next_station, added_time)
         self.assertEqual(route.station_visits, [0, 13.18, 21.0, 30.25])
 
-
     """
     Temporary testing
     """
