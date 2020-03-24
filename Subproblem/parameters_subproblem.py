@@ -33,8 +33,8 @@ class ParameterSub:
         self.Q_BV = vehicle.battery_capacity
         self.Q_CV = vehicle.bike_capacity
         self.L_BV = vehicle.current_batteries
-        self.L_CV = vehicle.current_battery_bikes
-        self.L_FV = vehicle.current_battery_bikes
+        self.L_CV = vehicle.current_charged_bikes
+        self.L_FV = vehicle.current_charged_bikes
 
         # Base Violations
         self.V_TS = [0] + base_violations + [0]
