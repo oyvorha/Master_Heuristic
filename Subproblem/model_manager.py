@@ -1,13 +1,14 @@
-from generate_route_pattern import generate_all_stations, GenerateRoutePattern
-from parameters_subproblem import ParameterSub
+from Subproblem.generate_route_pattern import GenerateRoutePattern
+from Subproblem.parameters_subproblem import ParameterSub
 from vehicle import Vehicle
-from subproblem_model import run_model
+from Subproblem.subproblem_model import run_model
 import numpy as np
+from Input.preprocess import generate_all_stations
 
 
 class ModelManager:
 
-    stations = generate_all_stations('A')[:30]
+    stations = generate_all_stations('A')
     time_horizon = 25
 
     def __init__(self, start_station_id, vehicle=Vehicle(5, 5, 5)):
@@ -74,7 +75,7 @@ class ModelManager:
     @staticmethod
     def get_base_inventory(station, visit_time_float, test_mode=None):
         visit_time = int(visit_time_float)
-        L_CS = station.current_battery_bikes
+        L_CS = station.current_charged_bikes
         L_FS = station.current_flat_bikes
         if test_mode:
             incoming_charged_bike_times = test_mode[0]
@@ -100,9 +101,10 @@ class ModelManager:
         incoming_charged_bikes = customer_arrivals[0]
         incoming_flat_bikes = customer_arrivals[1]
         outgoing_charged_bikes = customer_arrivals[2]
-        starvation = max(0, visit_inventory_charged + incoming_charged_bikes - outgoing_charged_bikes)
+        starvation = abs(min(0, visit_inventory_charged + incoming_charged_bikes - outgoing_charged_bikes))
         congestion = max(0, visit_inventory_charged + visit_inventory_flat + incoming_charged_bikes
-                         + incoming_flat_bikes - outgoing_charged_bikes - station.station_cap)
+                         + incoming_flat_bikes - min(visit_inventory_charged + incoming_charged_bikes,
+                                                     outgoing_charged_bikes) - station.station_cap)
         return starvation + congestion
 
 
