@@ -10,7 +10,7 @@ def get_driving_time_from_id(station_id_1, station_id_2):
 
 
 def generate_all_stations(scenario):
-    with open('Input/station.json', 'r') as f:
+    with open('../Input/station.json', 'r') as f:
         stations = json.load(f)
 
     station_objects = []

@@ -26,7 +26,7 @@ class Station:
             for station in station_list:
                 if station.id not in tabu_list:
                     id_key = str(self.id) + '_' + str(station.id)
-                    with open("Input/times.json", 'r') as f:
+                    with open("../Input/times.json", 'r') as f:
                         time_json = json.load(f)
                         st_time = time_json[id_key][0]
                         if len(closest_stations) < max_candidates and st_time < max_time:
