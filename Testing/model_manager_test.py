@@ -27,18 +27,18 @@ class ModelManagerTester(unittest.TestCase):
 
     def test_base_inventory(self):
         self.assertEqual(ModelManager.get_base_inventory(station=ModelManagerTester.test_station, visit_time_float=5,
-                                                         test_mode=[[], [], []]), (5, 2))
+                                                         customer_arrivals=[[], [], []]), (5, 2))
         self.assertEqual(ModelManager.get_base_inventory(station=ModelManagerTester.test_station, visit_time_float=5,
-                                                         test_mode=[[1, 2, 3], [2, 4], [0]]), (7, 4))
+                                                         customer_arrivals=[[1, 2, 3], [2, 4], [0]]), (7, 4))
         self.assertEqual(ModelManager.get_base_inventory(station=ModelManagerTester.test_station, visit_time_float=10,
-                                                         test_mode=[[1, 1, 1, 1, 4, 5, 2, 3], [2, 3, 4, 9, 4, 9],
-                                                                    []]), (13, 7))
+                                                         customer_arrivals=[[1, 1, 1, 1, 4, 5, 2, 3], [2, 3, 4, 9, 4, 9],
+                                                                            []]), (13, 7))
         self.assertEqual(ModelManager.get_base_inventory(station=ModelManagerTester.test_station, visit_time_float=10,
-                                                         test_mode=[[1, 1, 1, 1, 4, 5, 2, 3, 9], [2, 3, 4, 9, 4, 9],
-                                                                    []]), (14, 6))
+                                                         customer_arrivals=[[1, 1, 1, 1, 4, 5, 2, 3, 9], [2, 3, 4, 9, 4, 9],
+                                                                            []]), (14, 6))
         self.assertEqual(ModelManager.get_base_inventory(station=ModelManagerTester.test_station, visit_time_float=15,
-                                                         test_mode=[[], [2, 3, 4, 9, 4, 9],
-                                                                    [0, 4, 5, 8, 10, 11, 1]]), (0, 8))
+                                                         customer_arrivals=[[], [2, 3, 4, 9, 4, 9],
+                                                                            [0, 4, 5, 8, 10, 11, 1]]), (0, 8))
 
     def test_poisson_draw(self):
         route = ModelManagerTester.test_manager.gen.finished_gen_routes[1]
