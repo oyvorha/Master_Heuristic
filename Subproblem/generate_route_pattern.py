@@ -25,7 +25,8 @@ class Route:
             bat_unload = min(self.vehicle.current_charged_bikes, self.starting_station.available_parking())
             flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_bike_capacity())
             flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
-            swap = self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes
+            swap = min(self.vehicle.current_batteries,
+                       self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes)
         self.upper_extremes = [swap, bat_load, bat_unload, flat_load, flat_unload]
 
 
