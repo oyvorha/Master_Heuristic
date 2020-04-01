@@ -6,7 +6,7 @@
     }).addTo(map);
 
     var request = new XMLHttpRequest();
-    request.open("GET", "../Input/station.json", false); //Make new station json information, not from input directory
+    request.open("GET", "station_vis.json", false);
     request.send(null);
 
     var station_json = JSON.parse(request.responseText);
