@@ -39,6 +39,11 @@ class ParameterSub:
 
         # Base Violations
         self.V = base_violations
+        self.V_O = base_violations[0]
+        self.R_O = 0
+        if self.stations[0] in self.charging_stations:
+            self.R_O = self.Q_CCU
 
         # Weights
         self.W_V = 1
+        self.W_R = 1
