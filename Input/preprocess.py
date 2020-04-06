@@ -17,8 +17,8 @@ def generate_all_stations(scenario):
     for id, station in stations.items():
         latitude = float(station[0])
         longitude = float(station[1])
-        init_battery_load = station[2][scenario][0]
-        init_flat_load = station[2][scenario][1]
+        init_battery_load = round(station[2][scenario][0], 0)
+        init_flat_load = round(station[2][scenario][1], 0)
         incoming_charged_bike_rate = station[2][scenario][2]
         incoming_flat_bike_rate = station[2][scenario][3]
         outgoing_charged_bike_rate = station[2][scenario][4]
