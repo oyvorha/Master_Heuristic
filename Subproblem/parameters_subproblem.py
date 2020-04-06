@@ -32,13 +32,18 @@ class ParameterSub:
 
         # Vehicle specific
         self.Q_BV = vehicle.battery_capacity
-        self.Q_CV = vehicle.bike_capacity
-        self.L_BV = vehicle.current_batteries
-        self.L_CV = vehicle.current_charged_bikes
-        self.L_FV = vehicle.current_charged_bikes
+        self.Q_CV = vehicle.bike_capacity + self.Q_CCL + self.Q_FCL - self.Q_CCU - self.Q_FCU
+        self.L_BV = vehicle.current_batteries - self.Q_B
+        self.L_CV = vehicle.current_charged_bikes + self.Q_CCL - self.Q_CCU
+        self.L_FV = vehicle.current_flat_bikes + self.Q_FCL - self.Q_FCU
 
         # Base Violations
         self.V = base_violations
+        self.V_O = base_violations[0]
+        self.R_O = 0
+        if self.stations[0] in self.charging_stations:
+            self.R_O = self.Q_CCU
 
         # Weights
         self.W_V = 1
+        self.W_R = 1
