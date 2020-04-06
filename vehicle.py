@@ -1,7 +1,9 @@
 
 class Vehicle:
 
-    def __init__(self, init_battery_load, init_charged_bikes, init_flat_bikes, bike_cap=20, bat_cap=20):
+    def __init__(self, init_battery_load, init_charged_bikes, init_flat_bikes, current_station,
+                 bike_cap=20, bat_cap=20):
+        self.current_station = current_station
         self.current_batteries = init_battery_load
         self.current_charged_bikes = init_charged_bikes
         self.current_flat_bikes = init_flat_bikes
