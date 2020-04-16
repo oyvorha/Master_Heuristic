@@ -97,7 +97,8 @@ def run_master_model(parameters):
         m.addConstrs(q_CCU_nac[v] == q_CCU[(v, s)] for v in Vehicles for s in Scenarios)
 
         # ------ OBJECTIVE -----------------------------------------------------------------------
-        m.setObjective(quicksum(P[s] * R[v][r][p][s] * lam[(v, r, p, s)] for s in Scenarios for v in Vehicles for r in Routes[v] for p in Patterns[v]), GRB.MAXIMIZE)
+        m.setObjective(quicksum(P[s] * R[v][r][p][s] * lam[(v, r, p, s)] for s in Scenarios
+                                for v in Vehicles for r in Routes[v] for p in Patterns[v]), GRB.MAXIMIZE)
 
         m.optimize()
 
