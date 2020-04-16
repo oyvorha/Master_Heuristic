@@ -19,7 +19,7 @@ class Route:
         self.station_visits.append(self.length)
 
     def generate_extreme_decisions(self, policy='greedy'):
-        swap, bat_load, bat_unload, flat_load, flat_unload = (0, 0, 0, 0, 0)
+        swap, bat_load, flat_load, bat_unload, flat_unload = (0, 0, 0, 0, 0)
         if policy == 'greedy':
             bat_load = min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity())
             bat_unload = min(self.vehicle.current_charged_bikes, self.starting_station.available_parking())
@@ -27,7 +27,8 @@ class Route:
             flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
             swap = min(self.vehicle.current_batteries,
                        self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes)
-        self.upper_extremes = [swap, bat_load, bat_unload, flat_load, flat_unload]
+        # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
+        self.upper_extremes = [swap, bat_load, flat_load, bat_unload, flat_unload]
 
 
 class GenerateRoutePattern:
@@ -74,10 +75,11 @@ class GenerateRoutePattern:
     def gen_patterns(self):
         rep_col = self.finished_gen_routes[0]
         pat = list()
+        # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
         for swap in [0, rep_col.upper_extremes[0]]:
             for bat_load in [0, rep_col.upper_extremes[1]]:
-                for bat_unload in [0, rep_col.upper_extremes[2]]:
-                    for flat_load in [0, rep_col.upper_extremes[3]]:
+                for flat_load in [0, rep_col.upper_extremes[2]]:
+                    for bat_unload in [0, rep_col.upper_extremes[3]]:
                         for flat_unload in [0, rep_col.upper_extremes[4]]:
-                            pat.append([swap, bat_load, bat_unload, flat_load, flat_unload])
+                            pat.append([swap, bat_load, flat_load, bat_unload, flat_unload])
         self.patterns = list(set(tuple(val) for val in pat))
