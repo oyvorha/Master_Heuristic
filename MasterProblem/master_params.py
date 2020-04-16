@@ -1,15 +1,16 @@
 import numpy as np
+from Input.preprocess import get_index
 
 
 class MasterParameters:
 
-    def __init__(self, route_pattern, subproblem_scores, customer_scenarios, heuristic_man):
+    def __init__(self, route_pattern, subproblem_scores, customer_scenarios, station_objects):
 
         self.route_pattern = route_pattern
-        self.heuristic_man = heuristic_man
+        self.station_objects = station_objects
 
         # sets
-        self.stations = [i for i in range(len(heuristic_man.stations))]
+        self.stations = [i for i in range(len(station_objects))]
         self.vehicles = [i for i in range(len(self.route_pattern))]
         self.routes = [[i for i in range(len(gen.finished_gen_routes))] for gen in self.route_pattern]
         self.patterns = [[i for i in range(len(gen.patterns))] for gen in self.route_pattern]
@@ -29,12 +30,12 @@ class MasterParameters:
         self.set_pattern()
 
         self.vehicle_bike_caps = [gen.vehicle.bike_capacity for gen in self.route_pattern]
-        self.station_caps = [station.station_cap for station in heuristic_man.stations]
+        self.station_caps = [station.station_cap for station in station_objects]
         self.init_charged_bike_load = [gen.vehicle.current_charged_bikes for gen in self.route_pattern]
         self.init_flat_bike_load = [gen.vehicle.current_flat_bikes for gen in self.route_pattern]
 
-        self.init_charged_station_load = [station.current_charged_bikes for station in heuristic_man.stations]
-        self.init_flat_station_load = [station.current_flat_bikes for station in heuristic_man.stations]
+        self.init_charged_station_load = [station.current_charged_bikes for station in station_objects]
+        self.init_flat_station_load = [station.current_flat_bikes for station in station_objects]
 
     """
     Create pattern variables with shape (v, r, p)
@@ -66,8 +67,8 @@ class MasterParameters:
             v_row = list()
             for route in gen.finished_gen_routes:
                 next_station = route.stations[1]
-                index = self.heuristic_man.get_index(next_station.id)
-                i_array = np.zeros(len(self.heuristic_man.stations))
+                index = get_index(next_station.id, self.station_objects)
+                i_array = np.zeros(len(self.station_objects))
                 i_array[index] = 1
                 v_row.append(i_array)
             self.origin_matrix.append(v_row)
