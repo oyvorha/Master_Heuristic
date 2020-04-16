@@ -15,6 +15,7 @@ class ParameterSub:
         self.visits = route.station_visits
 
         # Pattern
+        # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
         self.Q_B = pattern[0]
         self.Q_CCL = pattern[1]
         self.Q_FCL = pattern[2]

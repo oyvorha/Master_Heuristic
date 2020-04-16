@@ -59,9 +59,13 @@
     });
 
     for (var car_id in vehicle_json) {
+        // q_B, q_CCL, q_FCL, q_CCU, q_FCU
         if (vehicle_json.hasOwnProperty(car_id)) {
             var popup = 'Car ID: ' + car_id + ', ' + String(vehicle_json[car_id][1]) + ' charged bikes, '+
-                String(vehicle_json[car_id][2]) + ' flat bikes, ' + String(vehicle_json[car_id][3]) + ' batteries';
+                String(vehicle_json[car_id][2]) + ' flat bikes, ' + String(vehicle_json[car_id][3]) + ' batteries' +
+                ' Battery swaps: ' + String(vehicle_json[car_id][5][0]) + ', Charged loaded: ' + String(vehicle_json[car_id][5][1])
+            + ', Flat loaded: ' + String(vehicle_json[car_id][5][2]) + ', Charged unloaded: ' + String(vehicle_json[car_id][5][3])
+            + ', Flat unloaded: ' + String(vehicle_json[car_id][5][4]);
             L.marker(vehicle_json[car_id][0], {icon: car}).addTo(map).bindPopup(popup).addTo(map);
             var polyline = L.polyline([vehicle_json[car_id][0], station_dict[vehicle_json[car_id][4]][0]],
                 {color: color_dict[3]}).addTo(map);
