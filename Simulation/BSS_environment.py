@@ -19,6 +19,8 @@ class Environment:
         self.vehicle_vis = {v.id: [[0, 0, 0, 0, 0], v.current_station] for v in Environment.vehicles}
         self.total_starvations = 0
         self.total_congestions = 0
+        self.base_starvations = 0
+        self.base_congestions = 0
 
         while self.current_time < Environment.simulation_time:
             self.event_trigger()
@@ -63,6 +65,8 @@ class Environment:
         for station in Environment.stations:
             L_CS = station.current_charged_bikes
             L_FS = station.current_flat_bikes
+            L_CS_base = station.base_current_charged_bikes
+            L_FS_base = station.base_current_flat_bikes
             incoming_charged_bike_times = HeuristicManager.poisson_simulation(station.incoming_charged_bike_rate, elapsed_time)
             incoming_flat_bike_times = HeuristicManager.poisson_simulation(station.incoming_flat_bike_rate, elapsed_time)
             outgoing_charged_bike_times = HeuristicManager.poisson_simulation(station.outgoing_charged_bike_rate, elapsed_time)
@@ -70,6 +74,12 @@ class Environment:
                 c1 = incoming_charged_bike_times.count(i)
                 c2 = incoming_flat_bike_times.count(i)
                 c3 = outgoing_charged_bike_times.count(i)
+                base_minute_starvations = min(0, L_CS_base + c1 - c3)
+                self.base_starvations -= base_minute_starvations
+                L_CS_base = max(0, min(station.station_cap - L_FS_base, L_CS_base + c1 - c3))
+                self.base_congestions += max(0, L_FS_base + L_CS_base + c2 - base_minute_starvations -
+                                              station.station_cap)
+                L_FS_base = min(station.station_cap - L_CS_base, L_FS_base + c2)
                 minute_starvations = min(0, L_CS + c1 - c3)
                 self.total_starvations -= minute_starvations
                 L_CS = max(0, min(station.station_cap - L_FS, L_CS + c1 - c3))
@@ -77,6 +87,8 @@ class Environment:
                 L_FS = min(station.station_cap - L_CS, L_FS + c2)
             station.current_charged_bikes = L_CS
             station.current_flat_bikes = L_FS
+            station.base_current_charged_bikes = L_CS_base
+            station.base_current_flat_bikes = L_FS_base
 
     def visualize_system(self):
         json_stations = {}
@@ -101,6 +113,8 @@ class Environment:
         print("Simulation time =", Environment.simulation_time, "minutes")
         print("Starvations =", self.total_starvations)
         print("Congestions =", self.total_congestions)
+        print("BASE Starvations =", self.base_starvations)
+        print("BASE Congestions =", self.base_congestions)
 
 
 env = Environment(0)

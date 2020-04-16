@@ -21,6 +21,10 @@ class Station:
             self.current_charged_bikes = charged_load
             self.current_flat_bikes = flat_load
 
+            # Base violation inventory
+            self.base_current_charged_bikes = charged_load
+            self.base_current_flat_bikes = flat_load
+
         def get_candidate_stations(self, station_list, tabu_list=None, max_candidates=7, max_time=25):
             closest_stations = list()
             for station in station_list:
