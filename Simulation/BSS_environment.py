@@ -7,16 +7,16 @@ import json
 class Environment:
 
     stations = generate_all_stations('A')
-    simulation_time = 60
+    simulation_time = 20
     vehicles = [Vehicle(init_battery_load=20, init_charged_bikes=15, init_flat_bikes=1,
                 current_station=stations[3], id=0), Vehicle(init_battery_load=20, init_charged_bikes=15, init_flat_bikes=1,
                 current_station=stations[10], id=1)]
-    handling_time = 0.3
+    handling_time = 2
 
     def __init__(self, start_time):
         self.current_time = start_time
-        self.trigger_stack = [[0, Environment.vehicles[0]], [6, Environment.vehicles[1]]]
-        self.vehicle_vis = {v.id: [[0, 0, 0, 0, 0], v.current_station] for v in Environment.vehicles}
+        self.trigger_stack = [[0, Environment.vehicles[0]], [2, Environment.vehicles[1]]]
+        self.vehicle_vis = {v.id: [[v.current_station.id], [], [], []] for v in Environment.vehicles}
         self.total_starvations = 0
         self.total_congestions = 0
         self.base_starvations = 0
@@ -25,6 +25,7 @@ class Environment:
         while self.current_time < Environment.simulation_time:
             self.event_trigger()
         self.print_status()
+        self.visualize_system()
 
     def event_trigger(self):
         event = self.trigger_stack.pop(0)
@@ -46,9 +47,12 @@ class Environment:
 
         self.trigger_stack.append([self.current_time + driving_time + handling_time, veh])
         self.trigger_stack = sorted(self.trigger_stack, key=lambda l: l[0])
-        print(self.trigger_stack)
-        self.vehicle_vis[veh.id] = [pattern, next_station]
-        self.visualize_system()
+        self.vehicle_vis[veh.id][0].append(next_station.id)
+        self.vehicle_vis[veh.id][1].append([veh.current_charged_bikes,
+                                            veh.current_flat_bikes, veh.current_batteries])
+        self.vehicle_vis[veh.id][2].append(pattern)
+        self.vehicle_vis[veh.id][3].append([veh.current_station.current_charged_bikes,
+                                            veh.current_station.current_flat_bikes])
         self.update_decision(veh, veh.current_station, pattern, next_station)
 
     def update_decision(self, vehicle, station, pattern, next_station):
@@ -98,15 +102,8 @@ class Environment:
                                          station.current_flat_bikes, 0, 0]
         with open('../Visualization/station_vis.json', 'w') as fp:
             json.dump(json_stations, fp)
-
-        vehicle_json = {}
-        v = Environment.vehicles
-        for i in range(len(v)):
-            vehicle_json[str(i)] = [[v[i].current_station.latitude, v[i].current_station.longitude],
-                                    v[i].current_charged_bikes, v[i].current_flat_bikes, v[i].current_batteries,
-                                    self.vehicle_vis[i][1].id, self.vehicle_vis[i][0]]
         with open('../Visualization/vehicle.json', 'w') as f:
-            json.dump(vehicle_json, f)
+            json.dump(self.vehicle_vis, f)
 
     def print_status(self):
         print("--------------------- SIMULATION STATUS -----------------------")
