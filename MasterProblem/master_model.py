@@ -80,11 +80,10 @@ def run_master_model(parameters):
         m.addConstrs(q_CCU_nac[v] + q_FCU_nac[v] <= Q_S[v] - L_CS[v] - L_FS[v] + q_CCL_nac[v] + q_FCL_nac[v] for v in
                     Vehicles)
         m.addConstrs(q_B_nac[v] <= L_FS[v] + q_FCU_nac[v] - q_FCL_nac[v] for v in Vehicles)
-        m.addConstrs(q_B_nac[v] <= L_FS[v] + q_FCU_nac[v] - q_FCL_nac[v] for v in Vehicles)
         m.addConstrs(q_FCL_nac[v] <= L_FS[v] for v in Vehicles)
         m.addConstrs(q_CCL_nac[v] <= L_CS[v] for v in Vehicles)
-        m.addConstrs(q_FCU_nac[v] + q_CCU_nac[v] - q_FCL_nac[v] - q_CCL_nac[v] <= Q_S[v] - L_CS[v] - L_FS[v] for v in
-                    Vehicles)
+        m.addConstrs(q_CCU_nac[v] <= L_CV[v] for v in Vehicles)
+        m.addConstrs(q_FCU_nac[v] <= L_FV[v] for v in Vehicles)
 
         # Non-anticipativity constraints for x
         m.addConstrs(x_nac[(i, v)] == x[(i, v, s)] for i in Stations for v in Vehicles for s in Scenarios)
