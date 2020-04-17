@@ -58,16 +58,32 @@
         iconSize: [45, 30]
     });
 
+    var stop = L.icon({
+        iconUrl: 'service_stop.png',
+        iconSize: [35, 25]
+    });
+
     for (var car_id in vehicle_json) {
         // q_B, q_CCL, q_FCL, q_CCU, q_FCU
         if (vehicle_json.hasOwnProperty(car_id)) {
-            var popup = 'Car ID: ' + car_id + ', ' + String(vehicle_json[car_id][1]) + ' charged bikes, '+
-                String(vehicle_json[car_id][2]) + ' flat bikes, ' + String(vehicle_json[car_id][3]) + ' batteries' +
-                ' Battery swaps: ' + String(vehicle_json[car_id][5][0]) + ', Charged loaded: ' + String(vehicle_json[car_id][5][1])
-            + ', Flat loaded: ' + String(vehicle_json[car_id][5][2]) + ', Charged unloaded: ' + String(vehicle_json[car_id][5][3])
-            + ', Flat unloaded: ' + String(vehicle_json[car_id][5][4]);
-            L.marker(vehicle_json[car_id][0], {icon: car}).addTo(map).bindPopup(popup).addTo(map);
-            var polyline = L.polyline([vehicle_json[car_id][0], station_dict[vehicle_json[car_id][4]][0]],
-                {color: color_dict[3]}).addTo(map);
+            console.log(vehicle_json[car_id][1].length);
+            for (var j = 0; j < vehicle_json[car_id][1].length; j++) {
+            var popup = ' STOP ' + String(j+1) + ', Car ID: ' + car_id + ', ' + String(vehicle_json[car_id][1][j][0]) + ' charged bikes, '+
+                String(vehicle_json[car_id][1][j][1]) + ' flat bikes, ' + String(vehicle_json[car_id][1][j][2]) + ' batteries' +
+                ' Battery swaps: ' + String(vehicle_json[car_id][2][j][0]) + ', Charged loaded: ' + String(vehicle_json[car_id][2][j][1])
+            + ', Flat loaded: ' + String(vehicle_json[car_id][2][j][2]) + ', Charged unloaded: ' + String(vehicle_json[car_id][2][j][3])
+            + ', Flat unloaded: ' + String(vehicle_json[car_id][2][j][4] + ', Station inventory at visit: Charged ' +
+                String(vehicle_json[car_id][3][j][0]) + ', Flat: ' + String(vehicle_json[car_id][3][j][1]));
+            if (j == (vehicle_json[car_id][1].length - 1)) {
+                L.marker(station_dict[vehicle_json[car_id][0][j]][0], {icon: car}).addTo(map).bindPopup(popup).addTo(map);
+            } else {
+                L.marker(station_dict[vehicle_json[car_id][0][j]][0], {icon: stop}).addTo(map).bindPopup(popup).addTo(map);
+            }
+            }
+            for (k = 0; k < vehicle_json[car_id][0].length - 1; k++) {
+                var polyline = L.polyline([station_dict[vehicle_json[car_id][0][k]][0],
+                        station_dict[vehicle_json[car_id][0][k+1]][0]],
+                    {color: color_dict[parseInt(car_id)+1]}).addTo(map);
+            }
         }
     }
