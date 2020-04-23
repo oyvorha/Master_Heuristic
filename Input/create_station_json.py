@@ -4,8 +4,6 @@ import json
 file = '~/stations.xlsx'
 sheet_name = 'Data'
 scenarios = ['A', 'B', 'C', 'D', 'E']
-flat_rate = 0.3
-battery_rate = 0.7
 length_time_interval = 120
 
 stations = {}
@@ -16,17 +14,13 @@ def read_excel_and_set_rates():
     for index, row in df_stations.iterrows():
         interval_scenarios = {}
         for scenario in scenarios:
-            full_station_time = 10  # Temporary guess: Read from DB!!
-            init_load = round(battery_rate * float(row[scenario+'_start_load']), 0)
-            init_flat_load = round(flat_rate * float(row[scenario + '_start_load']), 0)
-            battery_docker_rate = round(battery_rate * float(row[scenario + '_incoming'])/(
-                    length_time_interval - full_station_time), 3)
-            flat_docker_rate = round(flat_rate * float(row[scenario + '_incoming'])/(
+            full_station_time = 0  # Temporary guess: Read from DB!!
+            init_load = round(float(row[scenario+'_start_load']), 0)
+            docker_rate = round(float(row[scenario + '_incoming'])/(
                     length_time_interval - full_station_time), 3)
             battery_user_rate = round(float(row[scenario + '_outgoing_rate']) / (
                     length_time_interval - row[scenario+'_empty']), 3)
-            interval_scenarios[scenario] = [init_load, init_flat_load, battery_docker_rate, flat_docker_rate,
-                                            battery_user_rate]
+            interval_scenarios[scenario] = [init_load, docker_rate, battery_user_rate]
         stations[int(row['Station_ID'])] = [row['Latitude'], row['Longitude'], interval_scenarios]
 
 

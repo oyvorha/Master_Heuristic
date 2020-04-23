@@ -54,7 +54,6 @@ class HeuristicManager:
         i = None
         q_B, q_CCL, q_FCL, q_CCU, q_FCU = 0, 0, 0, 0, 0
         for var in self.master_solution.getVars():
-            print(var.varName, var.x)
             name = var.varName.split("[")
             iv = name[1].split(',')
             round_val = round(var.x, 0)
@@ -86,7 +85,7 @@ class HeuristicManager:
     def poisson_simulation(intensity_rate, time_steps):
         times = list()
         for t in range(time_steps):
-            arrival = np.random.poisson(intensity_rate * time_steps)
+            arrival = np.random.poisson(intensity_rate)
             for i in range(arrival):
                 times.append(t)
         return times

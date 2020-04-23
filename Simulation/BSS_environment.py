@@ -6,16 +6,16 @@ import json
 
 class Environment:
 
-    stations = generate_all_stations('A')
-    simulation_time = 20
-    vehicles = [Vehicle(init_battery_load=20, init_charged_bikes=15, init_flat_bikes=1,
-                current_station=stations[3], id=0), Vehicle(init_battery_load=20, init_charged_bikes=15, init_flat_bikes=1,
-                current_station=stations[10], id=1)]
-    handling_time = 2
+    stations = generate_all_stations('B')[:20]
+    stations[4].depot = True
+    simulation_time = 60
+    vehicles = [Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10,
+                current_station=stations[0], id=0)]
+    handling_time = 0.5
 
     def __init__(self, start_time):
         self.current_time = start_time
-        self.trigger_stack = [[0, Environment.vehicles[0]], [2, Environment.vehicles[1]]]
+        self.trigger_stack = [[0, Environment.vehicles[0]]]
         self.vehicle_vis = {v.id: [[v.current_station.id], [], [], []] for v in Environment.vehicles}
         self.total_starvations = 0
         self.total_congestions = 0
@@ -62,44 +62,50 @@ class Environment:
         vehicle.swap_batteries(Q_B)
         vehicle.current_station = next_station
         station.change_charged_load(-Q_CCL + Q_CCU + Q_B)
-        station.change_flat_load(-Q_FCL + Q_FCU)
+        if station.charging_station:  # If charging station, make flat unload battery unload immediately
+            station.change_charged_load(-Q_FCL + Q_FCU)
+        else:
+            station.change_flat_load(-Q_FCL + Q_FCU)
+        if station.depot:
+            vehicle.current_batteries = vehicle.battery_capacity
 
     def update_system(self, elaps_time):
         elapsed_time = int(elaps_time)
         for station in Environment.stations:
-            L_CS = station.current_charged_bikes
-            L_FS = station.current_flat_bikes
-            L_CS_base = station.base_current_charged_bikes
-            L_FS_base = station.base_current_flat_bikes
-            incoming_charged_bike_times = HeuristicManager.poisson_simulation(station.incoming_charged_bike_rate, elapsed_time)
-            incoming_flat_bike_times = HeuristicManager.poisson_simulation(station.incoming_flat_bike_rate, elapsed_time)
-            outgoing_charged_bike_times = HeuristicManager.poisson_simulation(station.outgoing_charged_bike_rate, elapsed_time)
-            for i in range(elapsed_time):
-                c1 = incoming_charged_bike_times.count(i)
-                c2 = incoming_flat_bike_times.count(i)
-                c3 = outgoing_charged_bike_times.count(i)
-                base_minute_starvations = min(0, L_CS_base + c1 - c3)
-                self.base_starvations -= base_minute_starvations
-                L_CS_base = max(0, min(station.station_cap - L_FS_base, L_CS_base + c1 - c3))
-                self.base_congestions += max(0, L_FS_base + L_CS_base + c2 - base_minute_starvations -
-                                              station.station_cap)
-                L_FS_base = min(station.station_cap - L_CS_base, L_FS_base + c2)
-                minute_starvations = min(0, L_CS + c1 - c3)
-                self.total_starvations -= minute_starvations
-                L_CS = max(0, min(station.station_cap - L_FS, L_CS + c1 - c3))
-                self.total_congestions += max(0, L_FS + L_CS + c2 - minute_starvations - station.station_cap)
-                L_FS = min(station.station_cap - L_CS, L_FS + c2)
-            station.current_charged_bikes = L_CS
-            station.current_flat_bikes = L_FS
-            station.base_current_charged_bikes = L_CS_base
-            station.base_current_flat_bikes = L_FS_base
+            if not station.depot:
+                L_CS = station.current_charged_bikes
+                L_FS = station.current_flat_bikes
+                L_CS_base = station.base_current_charged_bikes
+                L_FS_base = station.base_current_flat_bikes
+                incoming_charged_bike_times = HeuristicManager.poisson_simulation(station.incoming_charged_bike_rate, elapsed_time)
+                incoming_flat_bike_times = HeuristicManager.poisson_simulation(station.incoming_flat_bike_rate, elapsed_time)
+                outgoing_charged_bike_times = HeuristicManager.poisson_simulation(station.outgoing_charged_bike_rate, elapsed_time)
+                for i in range(elapsed_time):
+                    c1 = incoming_charged_bike_times.count(i)
+                    c2 = incoming_flat_bike_times.count(i)
+                    c3 = outgoing_charged_bike_times.count(i)
+                    base_minute_starvations = min(0, L_CS_base + c1 - c3)
+                    self.base_starvations -= base_minute_starvations
+                    L_CS_base = max(0, min(station.station_cap - L_FS_base, L_CS_base + c1 - c3))
+                    self.base_congestions += max(0, L_FS_base + L_CS_base + c2 - base_minute_starvations -
+                                                  station.station_cap)
+                    L_FS_base = min(station.station_cap - L_CS_base, L_FS_base + c2)
+                    minute_starvations = min(0, L_CS + c1 - c3)
+                    self.total_starvations -= minute_starvations
+                    L_CS = max(0, min(station.station_cap - L_FS, L_CS + c1 - c3))
+                    self.total_congestions += max(0, L_FS + L_CS + c2 - minute_starvations - station.station_cap)
+                    L_FS = min(station.station_cap - L_CS, L_FS + c2)
+                station.current_charged_bikes = L_CS
+                station.current_flat_bikes = L_FS
+                station.base_current_charged_bikes = L_CS_base
+                station.base_current_flat_bikes = L_FS_base
 
     def visualize_system(self):
         json_stations = {}
         for station in Environment.stations:
             # [lat, long], charged bikes, flat bikes, starvation score, congestion score
             json_stations[station.id] = [[station.latitude, station.longitude], station.current_charged_bikes,
-                                         station.current_flat_bikes, 0, 0]
+                                         station.current_flat_bikes, int(station.charging_station), int(station.depot) * 5]
         with open('../Visualization/station_vis.json', 'w') as fp:
             json.dump(json_stations, fp)
         with open('../Visualization/vehicle.json', 'w') as f:
@@ -112,6 +118,16 @@ class Environment:
         print("Congestions =", self.total_congestions)
         print("BASE Starvations =", self.base_starvations)
         print("BASE Congestions =", self.base_congestions)
+
+    @staticmethod
+    def print_number_of_bikes():
+        total_charged = 0
+        total_flat = 0
+        for station in Environment.stations:
+            total_charged += station.current_charged_bikes
+            total_flat += station.current_flat_bikes
+        print("Total charged: ", total_charged)
+        print("Total flat: ", total_flat)
 
 
 env = Environment(0)

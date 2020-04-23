@@ -9,7 +9,7 @@ def run_master_model(parameters):
 
         # ------ SETS -----------------------------------------------------------------------------
         Stations = parameters.stations
-        Swap_Stations = Stations  # Har ikke med depot atm
+        Swap_Stations = parameters.swap_stations
         Vehicles = parameters.vehicles
         Routes = parameters.routes
         Patterns = parameters.patterns
@@ -17,6 +17,7 @@ def run_master_model(parameters):
 
         # ------ PARAMETERS -----------------------------------------------------------------------
         A = parameters.origin_matrix
+        start_st = parameters.starting_stations
         R = parameters.subproblem_objectives
         P = parameters.scenario_probabilities
         Q_FCL = parameters.pattern_fcl
@@ -40,14 +41,14 @@ def run_master_model(parameters):
                       name="x")
 
         x_nac = m.addVars({(i,v) for i in Stations for v in Vehicles}, vtype=GRB.CONTINUOUS, lb=0, name="x_nac")
-        q_FCL_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
-                              name="q_FCL_nac")
         q_CCL_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
                              name="q_CCL_nac")
-        q_FCU_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
-                             name="q_FCU_nac")
+        q_FCL_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
+                              name="q_FCL_nac")
         q_CCU_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
                              name="q_CCU_nac")
+        q_FCU_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
+                             name="q_FCU_nac")
         q_B_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
                              name="q_B_nac")
 
@@ -77,16 +78,18 @@ def run_master_model(parameters):
         # Secure that first move is legal in terms of capacities
         m.addConstrs(q_CCL_nac[v] + q_FCL_nac[v] <= Q_CV[v] - L_FV[v] - L_CV[v] + q_CCU_nac[v] + q_FCU_nac[v] for v in
                     Vehicles)
-        m.addConstrs(q_CCU_nac[v] + q_FCU_nac[v] <= Q_S[v] - L_CS[v] - L_FS[v] + q_CCL_nac[v] + q_FCL_nac[v] for v in
+        m.addConstrs(q_CCU_nac[v] + q_FCU_nac[v] <= Q_S[v] - L_CS[start_st[v]] - L_FS[start_st[v]] + q_CCL_nac[v]
+                     + q_FCL_nac[v] for v in
                     Vehicles)
-        m.addConstrs(q_B_nac[v] <= L_FS[v] + q_FCU_nac[v] - q_FCL_nac[v] for v in Vehicles)
-        m.addConstrs(q_FCL_nac[v] <= L_FS[v] for v in Vehicles)
-        m.addConstrs(q_CCL_nac[v] <= L_CS[v] for v in Vehicles)
+        m.addConstrs(q_B_nac[v] <= L_FS[start_st[v]] + q_FCU_nac[v] - q_FCL_nac[v] for v in Vehicles)
+        m.addConstrs(q_FCL_nac[v] <= L_FS[start_st[v]] for v in Vehicles)
+        m.addConstrs(q_CCL_nac[v] <= L_CS[start_st[v]] for v in Vehicles)
         m.addConstrs(q_CCU_nac[v] <= L_CV[v] for v in Vehicles)
         m.addConstrs(q_FCU_nac[v] <= L_FV[v] for v in Vehicles)
 
         # Non-anticipativity constraints for x
         m.addConstrs(x_nac[(i, v)] == x[(i, v, s)] for i in Stations for v in Vehicles for s in Scenarios)
+        m.addConstrs(x_nac.sum('*', v) == 1 for v in Vehicles)
 
         # ------ OBJECTIVE -----------------------------------------------------------------------
         m.setObjective(quicksum(P[s] * R[v][r][p][s] * lam[(v, r, p, s)] for s in Scenarios
