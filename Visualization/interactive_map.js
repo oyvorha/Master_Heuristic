@@ -60,7 +60,7 @@
 
     var stop = L.icon({
         iconUrl: 'service_stop.png',
-        iconSize: [35, 25]
+        iconSize: [20, 15]
     });
 
     for (var car_id in vehicle_json) {
