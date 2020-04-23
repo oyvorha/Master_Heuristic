@@ -119,5 +119,15 @@ class Environment:
         print("BASE Starvations =", self.base_starvations)
         print("BASE Congestions =", self.base_congestions)
 
+    @staticmethod
+    def print_number_of_bikes():
+        total_charged = 0
+        total_flat = 0
+        for station in Environment.stations:
+            total_charged += station.current_charged_bikes
+            total_flat += station.current_flat_bikes
+        print("Total charged: ", total_charged)
+        print("Total flat: ", total_flat)
+
 
 env = Environment(0)
