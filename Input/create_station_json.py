@@ -4,8 +4,6 @@ import json
 file = '~/stations.xlsx'
 sheet_name = 'Data'
 scenarios = ['A', 'B', 'C', 'D', 'E']
-flat_rate = 0.3
-battery_rate = 0.7
 length_time_interval = 120
 
 stations = {}
