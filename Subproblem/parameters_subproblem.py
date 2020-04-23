@@ -1,18 +1,19 @@
 
 class ParameterSub:
 
-    def __init__(self, route, vehicle, pattern, customer_arrivals, L_CS, L_FS, base_violations, depot=None):
+    def __init__(self, route, vehicle, pattern, customer_arrivals, L_CS, L_FS, base_violations, V_0):
         # Sets
         self.stations = [i for i in range(len(route.stations))]
         self.charging_stations = list()
         self.non_charging_stations = list()
-        for i in range(len(route.stations)):
+        self.depot_index = None
+        for i in range(1, len(route.stations)):  # Don't include start station in subsets
             if route.stations[i].charging_station:
-                self.charging_stations.append(i+1)
+                self.charging_stations.append(i)
             else:
-                self.non_charging_stations.append(i+1)
-        self.depot_index = depot
-        self.visits = route.station_visits
+                self.non_charging_stations.append(i)
+            if route.stations[i].depot:
+                self.depot_index = i
 
         # Pattern
         # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
@@ -23,7 +24,6 @@ class ParameterSub:
         self.Q_FCU = pattern[4]
 
         # Station specific
-        self.T = route.station_visits
         self.Q_S = [station.station_cap for station in route.stations]
         self.L_CS = L_CS
         self.L_FS = L_FS
@@ -34,17 +34,48 @@ class ParameterSub:
         # Vehicle specific
         self.Q_BV = vehicle.battery_capacity
         self.Q_CV = vehicle.bike_capacity + self.Q_CCL + self.Q_FCL - self.Q_CCU - self.Q_FCU
-        self.L_BV = vehicle.current_batteries - self.Q_B
+        if route.stations[0].depot:
+            self.depot_index = 0
+            self.L_BV = vehicle.battery_capacity
+        else:
+            self.L_BV = vehicle.current_batteries - self.Q_B
         self.L_CV = vehicle.current_charged_bikes + self.Q_CCL - self.Q_CCU
         self.L_FV = vehicle.current_flat_bikes + self.Q_FCL - self.Q_FCU
 
         # Base Violations
         self.V = base_violations
-        self.V_O = base_violations[0]
+        self.V_O = V_0
         self.R_O = 0
-        if self.stations[0] in self.charging_stations:
-            self.R_O = self.Q_CCU
+        if route.stations[0].charging_station:
+            self.R_O = self.Q_FCU
 
         # Weights
         self.W_V = 1
         self.W_R = 1
+        self.W_VN = 0.7
+        self.W_VL = 0.3
+
+        self.print_all_params()
+
+    def print_all_params(self):
+        print("Stations: ", self.stations)
+        print("Charging Stations: ", self.charging_stations)
+        print("Non Charging Stations: ", self.non_charging_stations)
+        print("Depot index: ", self.depot_index)
+
+        print("Q_S: ", self.Q_S)
+        print("L_CS: ", self.L_CS)
+        print("L_FS: ", self.L_FS)
+        print("I_IC: ", self.I_IC)
+        print("I_IF: ", self.I_IF)
+        print("I_OC: ", self.I_OC)
+
+        print("Q_BV: ", self.Q_BV)
+        print("Q_CV: ", self.Q_CV)
+        print("L_BV: ", self.L_BV)
+        print("L_CV: ", self.L_CV)
+        print("L_FV: ", self.L_FV)
+
+        print("Base Violations: ", self.V)
+        print("V_O: ", self.V_O)
+        print("R_O: ", self.R_O)

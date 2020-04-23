@@ -17,7 +17,6 @@ def run_model(parameters):
         b = parameters.depot_index
 
         # ------ PARAMETERS -----------------------------------------------------------------------
-        T = parameters.visits
         Q_BV = parameters.Q_BV
         Q_CV = parameters.Q_CV
         Q_S = parameters.Q_S
@@ -35,6 +34,8 @@ def run_model(parameters):
         R_O = parameters.R_O
 
         W_V = parameters.W_V
+        W_VN = parameters.W_VN
+        W_VL = parameters.W_VL
         W_R = parameters.W_R
 
         # ------ VARIABLES ------------------------------------------------------------------------
@@ -56,12 +57,11 @@ def run_model(parameters):
         # Vehicle Loading Constraints
         m.addConstrs(q_B[i] <= l_BV[i] for i in Stations[1:])
         m.addConstrs(q_CCL[k] + q_FCL[k] <= Q_CV - l_CV[k] - l_FV[k] + q_CCU[k] + q_FCU[k] for k in Stations[1:])
-        if b:
-            m.addConstr(l_BV[b+1]-Q_BV == 0)
-            m.addConstr(q_B[b] == 0)
         for k in Stations[1:-1]:
             if k != b:
                 m.addConstr(l_BV[k+1] - l_BV[k] + q_B[k] == 0)
+            else:
+                m.addConstr(l_BV[k+1] - Q_BV == 0)
         m.addConstrs(l_CV[k+1] - l_CV[k] + q_CCU[k] - q_CCL[k] == 0 for k in Stations[1:-1])
         m.addConstrs(l_FV[k+1] - l_FV[k] + q_FCU[k] - q_FCL[k] == 0 for k in Stations[1:-1])
         m.addConstr(l_BV[1] == L_BV)
@@ -88,13 +88,24 @@ def run_model(parameters):
             L_CS[k] + q_CCU[k] - q_CCL[k] + L_FS[k] + q_FCU[k] - q_FCL[k] + I_IC[k] + I_IF[k] - v_C_ceiling[k]
             <= Q_S[k] for k in Stations[1:])
 
+        # Swap quantity assumptions
+        if b and b > 0:
+            m.addConstr(q_B[b] == 0)
+            m.addConstr(q_CCU[b] == 0)
+            m.addConstr(q_FCU[b] == 0)
+            m.addConstr(q_CCL[b] == 0)
+            m.addConstr(q_FCL[b] == 0)
+        for k in Charging_stations:
+            m.addConstr(q_CCU[k] == 0)
+            m.addConstr(q_FCL[k] == 0)
+
         # Reward
         m.addConstr(r_F <= quicksum(q_FCU[k] for k in Charging_stations))
 
         # ------ OBJECTIVE -----------------------------------------------------------------------
-        m.setObjective(W_V * (V_O + quicksum(V_B[k] - 1/2 * (
+        m.setObjective(W_V * (W_VN * (-V_O + V_B[0]) + W_VL * quicksum(V_B[k] - 1/2 * (
                 v_S_floor[k] + v_S_ceiling[k] + v_C_floor[k] + v_C_ceiling[k]) for k in Stations[1:])) + W_R * (
-                R_O + r_F), GRB.MAXIMIZE)
+                               R_O + r_F), GRB.MAXIMIZE)
 
         m.optimize()
 
