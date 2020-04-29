@@ -20,13 +20,14 @@ class Route:
 
     def generate_extreme_decisions(self, policy='greedy'):
         swap, bat_load, flat_load, bat_unload, flat_unload = (0, 0, 0, 0, 0)
-        if policy == 'greedy':
-            bat_load = min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity())
-            bat_unload = min(self.vehicle.current_charged_bikes, self.starting_station.available_parking())
-            flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_bike_capacity())
-            flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
-            swap = min(self.vehicle.current_batteries,
-                       self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes)
+        if not self.starting_station.depot:
+            if policy == 'greedy':
+                bat_load = min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity())
+                bat_unload = min(self.vehicle.current_charged_bikes, self.starting_station.available_parking())
+                flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_bike_capacity())
+                flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
+                swap = min(self.vehicle.current_batteries,
+                           self.starting_station.current_flat_bikes + self.vehicle.current_flat_bikes)
         # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
         self.upper_extremes = [swap, bat_load, flat_load, bat_unload, flat_unload]
 
