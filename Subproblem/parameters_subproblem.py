@@ -14,6 +14,7 @@ class ParameterSub:
                 self.non_charging_stations.append(i)
             if route.stations[i].depot:
                 self.depot_index = i
+        self.stations += [len(route.stations)]
 
         # Pattern
         # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
@@ -24,16 +25,16 @@ class ParameterSub:
         self.Q_FCU = pattern[4]
 
         # Station specific
-        self.Q_S = [station.station_cap for station in route.stations]
-        self.L_CS = L_CS
-        self.L_FS = L_FS
-        self.I_IC = [customer_arrivals[i][0] for i in range(len(customer_arrivals))]
-        self.I_IF = [customer_arrivals[i][1] for i in range(len(customer_arrivals))]
-        self.I_OC = [customer_arrivals[i][2] for i in range(len(customer_arrivals))]
+        self.Q_S = [station.station_cap for station in route.stations] + [0]
+        self.L_CS = L_CS + [0]
+        self.L_FS = L_FS + [0]
+        self.I_IC = [customer_arrivals[i][0] for i in range(len(customer_arrivals))] + [0]
+        self.I_IF = [customer_arrivals[i][1] for i in range(len(customer_arrivals))] + [0]
+        self.I_OC = [customer_arrivals[i][2] for i in range(len(customer_arrivals))] + [0]
 
         # Vehicle specific
         self.Q_BV = vehicle.battery_capacity
-        self.Q_CV = vehicle.bike_capacity + self.Q_CCL + self.Q_FCL - self.Q_CCU - self.Q_FCU
+        self.Q_CV = vehicle.bike_capacity + self.Q_CCL + self.Q_FCL - max(0, self.Q_CCU + self.Q_FCU)
         if route.stations[0].depot:
             self.depot_index = 0
             self.L_BV = vehicle.battery_capacity
@@ -43,7 +44,7 @@ class ParameterSub:
         self.L_FV = vehicle.current_flat_bikes + self.Q_FCL - self.Q_FCU
 
         # Base Violations
-        self.V = base_violations
+        self.V = base_violations + [0]
         self.V_O = V_0
         self.R_O = 0
         if route.stations[0].charging_station:

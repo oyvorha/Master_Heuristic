@@ -9,22 +9,23 @@ from MasterProblem.master_model import run_master_model
 class HeuristicManager:
 
     time_h = 25
-    no_scenarios = 2
 
-    def __init__(self, vehicles, station_full_set):
+    def __init__(self, vehicles, station_full_set, no_scenarios=1, init_branching=7):
+        self.no_scenarios = no_scenarios
         self.customer_arrival_scenarios = list()
         self.vehicles = vehicles
         self.station_set = station_full_set
         self.route_patterns = list()
         self.subproblem_scores = list()
         self.master_solution = None
+        self.init_branching = init_branching
 
         self.generate_scenarios()
         self.run_subproblems()
         self.run_master_problem()
 
     def run_vehicle_subproblems(self, vehicle):
-        gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle)
+        gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle, init_branching=self.init_branching)
         gen.get_columns()
         self.route_patterns.append(gen)
         model_man = ModelManager(vehicle)
@@ -54,25 +55,25 @@ class HeuristicManager:
         i = None
         q_B, q_CCL, q_FCL, q_CCU, q_FCU = 0, 0, 0, 0, 0
         for var in self.master_solution.getVars():
-            name = var.varName.split("[")
+            name = var.varName.strip("]").split("[")
             iv = name[1].split(',')
             round_val = round(var.x, 0)
-            if name[0] == 'x_nac' and round_val == 1 and int(iv[1][0]) == vehicle_index:
+            if name[0] == 'x_nac' and round_val == 1 and int(iv[1]) == vehicle_index:
                 i = int(iv[0])
-            if name[0] == 'q_FCL_nac':
+            if name[0] == 'q_FCL_nac' and int(name[1]) == vehicle_index:
                 q_FCL = round(var.x, 0)
-            if name[0] == 'q_CCL_nac':
+            if name[0] == 'q_CCL_nac' and int(name[1]) == vehicle_index:
                 q_CCL = round(var.x, 0)
-            if name[0] == 'q_FCU_nac':
+            if name[0] == 'q_FCU_nac' and int(name[1]) == vehicle_index:
                 q_FCU = round(var.x, 0)
-            if name[0] == 'q_CCU_nac':
+            if name[0] == 'q_CCU_nac' and int(name[1]) == vehicle_index:
                 q_CCU = round(var.x, 0)
-            if name[0] == 'q_B_nac':
+            if name[0] == 'q_B_nac' and int(name[1][0]) == vehicle_index:
                 q_B = round(var.x, 0)
         return self.station_set[i], [q_B, q_CCL, q_FCL, q_CCU, q_FCU]
 
     def generate_scenarios(self):
-        for i in range(HeuristicManager.no_scenarios):
+        for i in range(self.no_scenarios):
             scenario = list()
             for station in self.station_set:
                 c1_times = HeuristicManager.poisson_simulation(station.incoming_charged_bike_rate, HeuristicManager.time_h)

@@ -104,7 +104,7 @@ def run_model(parameters):
 
         # ------ OBJECTIVE -----------------------------------------------------------------------
         m.setObjective(W_V * (W_VN * (-V_O + V_B[0]) + W_VL * quicksum(V_B[k] - 1/2 * (
-                v_S_floor[k] + v_S_ceiling[k] + v_C_floor[k] + v_C_ceiling[k]) for k in Stations[1:])) + W_R * (
+                v_S_floor[k] + v_S_ceiling[k] + v_C_floor[k] + v_C_ceiling[k]) for k in Stations[1:-1])) + W_R * (
                                R_O + r_F), GRB.MAXIMIZE)
 
         m.optimize()
@@ -114,4 +114,4 @@ def run_model(parameters):
         return obj_val
 
     except GurobiError:
-            print(GurobiError.message)
+        print(GurobiError.message)

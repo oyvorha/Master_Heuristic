@@ -26,6 +26,10 @@ class Station:
             self.current_charged_bikes = charged_load
             self.current_flat_bikes = flat_load
 
+            # Alternative vehicle policies
+            self.shadow_current_charged_bikes = charged_load
+            self.shadow_current_flat_bikes = flat_load
+
             # Base violation inventory
             self.base_current_charged_bikes = charged_load
             self.base_current_flat_bikes = flat_load
@@ -40,7 +44,7 @@ class Station:
             self.max_capacity = max_capacity
             self.demand_per_hour = demand_per_hour
 
-        def get_candidate_stations(self, station_list, tabu_list=None, max_candidates=7, max_time=25):
+        def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=7, max_time=25):
             closest_stations = list()
             for station in station_list:
                 if station.id not in tabu_list:
@@ -71,4 +75,7 @@ class Station:
                 self.current_flat_bikes = 0
 
         def available_parking(self):
-            return max(0, self.station_cap - self.current_flat_bikes + self.current_charged_bikes)
+            return max(0, self.station_cap - self.current_flat_bikes - self.current_charged_bikes)
+
+        def get_shadow_parking(self):
+            return max(0, self.station_cap - self.shadow_current_flat_bikes - self.shadow_current_charged_bikes)
