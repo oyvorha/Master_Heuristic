@@ -34,29 +34,28 @@ class Route:
 
 class GenerateRoutePattern:
 
-    flexibility = 7
-    init_branching = 3
-    average_handling_time = 3
+    flexibility = 3
+    average_handling_time = 6
 
-    def __init__(self, starting_st, stations, vehicle):
+    def __init__(self, starting_st, stations, vehicle, init_branching=8):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
         self.finished_gen_routes = None
         self.patterns = None
         self.all_stations = stations
+        self.init_branching = init_branching
 
     def get_columns(self):
         finished_routes = list()
         construction_routes = [Route(self.starting_station, self.vehicle)]
-        branch = GenerateRoutePattern.init_branching
         while construction_routes:
             for col in construction_routes:
                 if col.length < (self.time_horizon - GenerateRoutePattern.flexibility):
                     candidates = col.starting_station.get_candidate_stations(
-                        self.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=3)
+                        self.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=9)
                     # SORT CANDIDATES BASED ON CRITICALITY HERE?
-                    for j in range(branch):
+                    for j in range(self.init_branching):
                         new_col = copy.deepcopy(col)
                         if len(new_col.stations) == 1:
                             new_col.add_station(candidates[j][0], candidates[j][1])
@@ -68,8 +67,8 @@ class GenerateRoutePattern:
                     col.generate_extreme_decisions()
                     finished_routes.append(col)
                 construction_routes.remove(col)
-                if branch > 1:
-                    branch -= 1
+                if self.init_branching > 1:
+                    self.init_branching -= 1
         self.finished_gen_routes = finished_routes
         self.gen_patterns()
 
