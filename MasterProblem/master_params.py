@@ -36,6 +36,7 @@ class MasterParameters:
 
         self.vehicle_bike_caps = [gen.vehicle.bike_capacity for gen in self.route_pattern]
         self.station_caps = [station.station_cap for station in station_objects]
+        self.init_battery_load = [gen.vehicle.current_batteries for gen in self.route_pattern]
         self.init_charged_bike_load = [gen.vehicle.current_charged_bikes for gen in self.route_pattern]
         self.init_flat_bike_load = [gen.vehicle.current_flat_bikes for gen in self.route_pattern]
 
@@ -102,6 +103,7 @@ class MasterParameters:
         print("FCL: ", self.pattern_fcl)
         print("FCU: ", self.pattern_fcu)
 
+        print("Init battery load: ", self.init_battery_load)
         print("Vehicle bike cap: ", self.vehicle_bike_caps)
         print("Init charged bike load: ", self.init_charged_bike_load)
         print("Init flat bike load: ", self.init_flat_bike_load)
