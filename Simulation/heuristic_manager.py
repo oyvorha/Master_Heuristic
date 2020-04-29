@@ -55,20 +55,20 @@ class HeuristicManager:
         i = None
         q_B, q_CCL, q_FCL, q_CCU, q_FCU = 0, 0, 0, 0, 0
         for var in self.master_solution.getVars():
-            name = var.varName.split("[")
+            name = var.varName.strip("]").split("[")
             iv = name[1].split(',')
             round_val = round(var.x, 0)
-            if name[0] == 'x_nac' and round_val == 1 and int(iv[1][0]) == vehicle_index:
+            if name[0] == 'x_nac' and round_val == 1 and int(iv[1]) == vehicle_index:
                 i = int(iv[0])
-            if name[0] == 'q_FCL_nac':
+            if name[0] == 'q_FCL_nac' and int(name[1]) == vehicle_index:
                 q_FCL = round(var.x, 0)
-            if name[0] == 'q_CCL_nac':
+            if name[0] == 'q_CCL_nac' and int(name[1]) == vehicle_index:
                 q_CCL = round(var.x, 0)
-            if name[0] == 'q_FCU_nac':
+            if name[0] == 'q_FCU_nac' and int(name[1]) == vehicle_index:
                 q_FCU = round(var.x, 0)
-            if name[0] == 'q_CCU_nac':
+            if name[0] == 'q_CCU_nac' and int(name[1]) == vehicle_index:
                 q_CCU = round(var.x, 0)
-            if name[0] == 'q_B_nac':
+            if name[0] == 'q_B_nac' and int(name[1][0]) == vehicle_index:
                 q_B = round(var.x, 0)
         return self.station_set[i], [q_B, q_CCL, q_FCL, q_CCU, q_FCU]
 
