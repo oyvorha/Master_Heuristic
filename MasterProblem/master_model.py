@@ -27,6 +27,7 @@ def run_master_model(parameters):
         Q_B = parameters.pattern_b
         Q_CV = parameters.vehicle_bike_caps
         Q_S = parameters.station_caps
+        L_BV = parameters.init_battery_load
         L_FV = parameters.init_flat_bike_load
         L_CV = parameters.init_charged_bike_load
         L_FS = parameters.init_flat_station_load
@@ -54,7 +55,7 @@ def run_master_model(parameters):
 
         # ------ CONSTRAINTS -----------------------------------------------------------------------
         m.addConstrs(quicksum(A[v][r][i] * lam[(v, r, p, s)] for r in Routes[v] for p in Patterns[v]) == x[(i, v, s)]
-                     for i in Swap_Stations for v in Vehicles for s in Scenarios)
+                     for i in Stations for v in Vehicles for s in Scenarios)
 
         m.addConstrs(x.sum('*', v, s) <= 1 for v in Vehicles for s in Scenarios)
         m.addConstrs(x.sum(i, '*', s) <= 1 for i in Swap_Stations for s in Scenarios)
@@ -74,6 +75,7 @@ def run_master_model(parameters):
         m.addConstrs(
             quicksum(lam[(v, r, p, s)] * Q_B[v][r][p] for r in Routes[v] for p in Patterns[v]) == q_B_nac[v] for v in
             Vehicles for s in Scenarios)
+        m.addConstrs(lam.sum(v, '*', '*', s) == 1 for v in Vehicles for s in Scenarios)
 
         # Secure that first move is legal in terms of capacities
         m.addConstrs(q_CCL_nac[v] + q_FCL_nac[v] <= Q_CV[v] - L_FV[v] - L_CV[v] + q_CCU_nac[v] + q_FCU_nac[v] for v in
@@ -82,6 +84,7 @@ def run_master_model(parameters):
                      + q_FCL_nac[v] for v in
                     Vehicles)
         m.addConstrs(q_B_nac[v] <= L_FS[start_st[v]] + q_FCU_nac[v] - q_FCL_nac[v] for v in Vehicles)
+        m.addConstrs(q_B_nac[v] <= L_BV[v] for v in Vehicles)
         m.addConstrs(q_FCL_nac[v] <= L_FS[start_st[v]] for v in Vehicles)
         m.addConstrs(q_CCL_nac[v] <= L_CS[start_st[v]] for v in Vehicles)
         m.addConstrs(q_CCU_nac[v] <= L_CV[v] for v in Vehicles)
