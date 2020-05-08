@@ -20,10 +20,10 @@ def setup_stations_students(client):
 
     datestring = "2019-09-17"
     snapshot_input = get_input_data_from_snapshot_df(snapshot_df, datestring)
-    movement_input = get_input_data_from_movement_df(movement_df, datestring, snapshot_keys = snapshot_input.keys())
-    demand_input = get_input_data_from_demand_df(demand_df, snapshot_keys = snapshot_input.keys())
+    movement_input = get_input_data_from_movement_df(movement_df, datestring, snapshot_keys=snapshot_input.keys())
+    demand_input = get_input_data_from_demand_df(demand_df, snapshot_keys=snapshot_input.keys())
     car_movement_input = get_input_data_from_car_movement_df(car_movement_df,
-            snapshot_keys = snapshot_input.keys())
+            snapshot_keys=snapshot_input.keys())
 
     # search for missing station_ids and add them to movement_input
     snap_keys = list(snapshot_input.keys())
@@ -40,7 +40,7 @@ def setup_stations_students(client):
             name = snapshot_input[station_id]["dock_group_title"]
             max_capacity = snapshot_input[station_id]["max_capacity"]
             demand_per_hour = demand_input[station_id] if station_id in demand_input else {i: 0 for i in range(6, 24)}
-            actual_num_bikes = snapshot_input[station_id]["num_bikes_list"]
+            actual_num_bikes = snapshot_input[station_id]["bikes"]
 
             try:
                 station_car_travel_time = car_movement_input[station_id]
@@ -49,14 +49,14 @@ def setup_stations_students(client):
 
 
             s = Station(
-                dockgroup_id = dockgroup_id,
-                next_station_probabilities = next_station_probabilities,
-                station_travel_time =  station_travel_time,
-                station_car_travel_time = station_car_travel_time,
-                name = name,
-                actual_num_bikes = actual_num_bikes,
-                max_capacity = max_capacity,
-                demand_per_hour =  demand_per_hour,
+                dockgroup_id=dockgroup_id,
+                next_station_probabilities=next_station_probabilities,
+                station_travel_time=station_travel_time,
+                station_car_travel_time=station_car_travel_time,
+                name=name,
+                actual_num_bikes=actual_num_bikes,
+                max_capacity=max_capacity,
+                demand_per_hour=demand_per_hour,
                 )
 
             stations.append(s)
@@ -210,6 +210,7 @@ def get_input_data_from_snapshot_df(df, datestring):
         dock_info["num_bikes_list"] = dict(zip(df.date, df.current_num_bikes))
         dock_info["max_capacity"] = df.total_num_docks.mean()
         dock_info["dock_group_title"] = df.iloc[0].dock_group_title
+        dock_info["bikes"] = dict(zip(df.hour, df.current_num_bikes))
 
         data[id] = dock_info
 
