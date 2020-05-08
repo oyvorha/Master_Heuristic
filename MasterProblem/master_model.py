@@ -80,9 +80,8 @@ def run_master_model(parameters):
         # Secure that first move is legal in terms of capacities
         m.addConstrs(q_CCL_nac[v] + q_FCL_nac[v] <= Q_CV[v] - L_FV[v] - L_CV[v] + q_CCU_nac[v] + q_FCU_nac[v] for v in
                     Vehicles)
-        m.addConstrs(q_CCU_nac[v] + q_FCU_nac[v] <= Q_S[v] - L_CS[start_st[v]] - L_FS[start_st[v]] + q_CCL_nac[v]
-                     + q_FCL_nac[v] for v in
-                    Vehicles)
+        m.addConstrs(q_CCU_nac[v] + q_FCU_nac[v] <= Q_S[start_st[v]] - L_CS[start_st[v]] - L_FS[start_st[v]] + q_CCL_nac[v]
+                     + q_FCL_nac[v] for v in Vehicles)
         m.addConstrs(q_B_nac[v] <= L_FS[start_st[v]] + q_FCU_nac[v] - q_FCL_nac[v] for v in Vehicles)
         m.addConstrs(q_B_nac[v] <= L_BV[v] for v in Vehicles)
         m.addConstrs(q_FCL_nac[v] <= L_FS[start_st[v]] for v in Vehicles)

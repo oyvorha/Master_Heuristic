@@ -1,48 +1,43 @@
 import json
+import numpy as np
 
 
 class Station:
 
         def __init__(self, latitude=None, longitude=None, charged_load=None, flat_load=None,
-                     incoming_charged_bike_rate=None, incoming_flat_bike_rate=None,
-                     outgoing_charged_bike_rate=None, ideal_state=None, station_id=None, station_cap=20, charging=False,
-                     depot=False, dockgroup_id=None, next_station_probabilities=None, station_travel_time=None,
-                     station_car_travel_time=None, name=None, actual_num_bikes=None, max_capacity=None,
-                     demand_per_hour=None):
+                     incoming_charged_bike_rate=None, incoming_flat_bike_rate=None, ideal_state=None, station_id=None,
+                     charging=False, depot=False, dockgroup_id=None, next_station_probabilities=None,
+                     station_travel_time=None,station_car_travel_time=None, name=None, actual_num_bikes=None,
+                     max_capacity=None, demand_per_hour=None):
             self.id = station_id
             self.latitude = latitude
             self.longitude = longitude
-            self.station_cap = station_cap
+            self.station_cap = max_capacity
             self.charging_station = charging
             self.depot = depot
 
             # The following varies with scenario
-            self.init_station_load = charged_load
-            self.init_flat_station_load = flat_load
             self.incoming_charged_bike_rate = incoming_charged_bike_rate
             self.incoming_flat_bike_rate = incoming_flat_bike_rate
-            self.outgoing_charged_bike_rate = outgoing_charged_bike_rate
             self.ideal_state = ideal_state
             self.current_charged_bikes = charged_load
             self.current_flat_bikes = flat_load
 
-            # Alternative vehicle policies
-            self.shadow_current_charged_bikes = charged_load
-            self.shadow_current_flat_bikes = flat_load
-
-            # Base violation inventory
-            self.base_current_charged_bikes = charged_load
-            self.base_current_flat_bikes = flat_load
-
             # UIP-sim
             self.dockgroup_id = dockgroup_id
-            self.next_station_probabilities = next_station_probabilities
             self.station_travel_time = station_travel_time
             self.station_car_travel_time = station_car_travel_time
             self.name = name
             self.actual_num_bikes = actual_num_bikes
-            self.max_capacity = max_capacity
+
+            # Number of charged bikes requested on average from each station per hour. Dict: {hour(0-23): #bikes}
             self.demand_per_hour = demand_per_hour
+            # Dict: {id station: probability (normalized?)} --> Not adjusted for stations not included
+            self.next_station_probabilities = next_station_probabilities
+
+            # Violations at station
+            self.total_starvations = 0
+            self.total_congestions = 0
 
         def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=7, max_time=25):
             closest_stations = list()
@@ -77,5 +72,27 @@ class Station:
         def available_parking(self):
             return max(0, self.station_cap - self.current_flat_bikes - self.current_charged_bikes)
 
-        def get_shadow_parking(self):
-            return max(0, self.station_cap - self.shadow_current_flat_bikes - self.shadow_current_charged_bikes)
+        def get_closest_station_with_capacity(self, stations, num_bikes):
+            closest = self.get_candidate_stations(stations, tabu_list=[self], max_candidates=10)
+            for st in closest:
+                if st[0].available_parking() >= num_bikes and self.id != st[0].id:
+                    return st[0]
+
+        def get_subset_prob(self, other_stations):
+            next_prob = list()
+            for st in other_stations:
+                if st == self or st.depot:
+                    next_prob.append(0)
+                else:
+                    next_prob.append(self.next_station_probabilities[st.id])
+            return next_prob/np.sum(next_prob)
+
+        def get_outgoing_customer_rate(self, hour):
+            rate = self.demand_per_hour[hour] / 60
+            return rate
+
+        def get_incoming_charged_rate(self, hour):
+            return self.incoming_charged_bike_rate[hour]
+
+        def get_incoming_flat_rate(self, hour):
+            return self.incoming_flat_bike_rate[hour]
