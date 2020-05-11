@@ -16,17 +16,20 @@ class ModelManager:
         L_FS = list()
         base_viol = list()
         V_0 = 0
+        D_0 = 0
         for i in range(len(route.stations)):
             st_L_CS, st_L_FS = ModelManager.get_base_inventory(route.stations[i], route.station_visits[i],
                                                                customer_scenario[route_full_set_index[i]])
             if i == 0:
                 V_0 = ModelManager.get_base_violations(route.stations[i], st_L_CS, st_L_FS, customer_arrivals[i],
                                                        pattern=pattern)
+                D_0 = ModelManager.get_base_deviation(route.stations[i], st_L_CS, st_L_FS, customer_arrivals[i],
+                                                       pattern=pattern)
             st_viol = ModelManager.get_base_violations(route.stations[i], st_L_CS, st_L_FS, customer_arrivals[i])
             L_CS.append(st_L_CS)
             L_FS.append(st_L_FS)
             base_viol.append(st_viol)
-        params = ParameterSub(route, self.vehicle, pattern, customer_arrivals, L_CS, L_FS, base_viol, V_0)
+        params = ParameterSub(route, self.vehicle, pattern, customer_arrivals, L_CS, L_FS, base_viol, V_0, D_0)
         return run_model(params)
 
     """
@@ -94,3 +97,18 @@ class ModelManager:
                              + incoming_flat_bikes - min(visit_inventory_charged + incoming_charged_bikes,
                                                          outgoing_charged_bikes) - station.station_cap)
         return starvation + congestion
+
+    @staticmethod
+    def get_base_deviation(station, visit_inventory_charged, visit_inventory_flat, customer_arrivals, pattern=None):
+        incoming_charged_bikes = customer_arrivals[0]
+        incoming_flat_bikes = customer_arrivals[1]
+        outgoing_charged_bikes = customer_arrivals[2]
+        starvation = abs(min(0, visit_inventory_charged + pattern[0] - pattern[1] + pattern[3]
+                             + incoming_charged_bikes - outgoing_charged_bikes))
+        congestion = max(0, visit_inventory_charged + visit_inventory_flat + incoming_charged_bikes
+                         + incoming_flat_bikes - pattern[1] + pattern[3] - pattern[2] + pattern[4]
+                         - min(visit_inventory_charged + incoming_charged_bikes, outgoing_charged_bikes)
+                         - station.station_cap)
+        dev = visit_inventory_charged + pattern[0] - pattern[1] + pattern[3] + incoming_charged_bikes - \
+              outgoing_charged_bikes + starvation - congestion
+        return dev

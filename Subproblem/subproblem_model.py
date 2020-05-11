@@ -32,11 +32,14 @@ def run_model(parameters):
         V_B = parameters.V
         V_O = parameters.V_O
         R_O = parameters.R_O
+        D_O = parameters.D_O
+        O = parameters.O
 
         W_V = parameters.W_V
         W_VN = parameters.W_VN
         W_VL = parameters.W_VL
         W_R = parameters.W_R
+        W_D = parameters.W_D
 
         # ------ VARIABLES ------------------------------------------------------------------------
         q_B = m.addVars({i for i in Stations[1:]}, vtype=GRB.CONTINUOUS, lb=0, name="q_B")
@@ -52,6 +55,8 @@ def run_model(parameters):
         v_C_floor = m.addVars({i for i in Stations[1:]}, vtype=GRB.CONTINUOUS, lb=0, name="v_C_floor")
         v_C_ceiling = m.addVars({i for i in Stations[1:]}, vtype=GRB.CONTINUOUS, lb=0, name="v_C_ceiling")
         r_F = m.addVar(vtype=GRB.CONTINUOUS, lb=0, name="r_F")
+        d = m.addVars({i for i in Stations[1:]}, vtype=GRB.CONTINUOUS, lb=0, name="d")
+        s_C = m.addVars({i for i in Stations[1:]}, vtype=GRB.CONTINUOUS, lb=0, name="s_C")
 
         # ------ CONSTRAINTS -----------------------------------------------------------------------
         # Vehicle Loading Constraints
@@ -102,10 +107,20 @@ def run_model(parameters):
         # Reward
         m.addConstr(r_F <= quicksum(q_FCU[k] for k in Charging_stations))
 
+        # Deviation
+        m.addConstrs(
+            s_C[k] >= L_CS[k] + q_CCL[k] - q_CCL[k] + q_B[k] + I_IC[k] - I_OC[k]
+            + (1 / 2)*(v_S_ceiling[k] + v_S_floor[k] - v_C_ceiling[k] - v_C_floor[k]) for k in Stations[1:])
+        m.addConstrs(
+            s_C[k] <= L_CS[k] + q_CCL[k] - q_CCL[k] + q_B[k] + I_IC[k] - I_OC[k]
+            + (1 / 2) * (v_S_ceiling[k] + v_S_floor[k] - v_C_ceiling[k] - v_C_floor[k]) for k in Stations[1:])
+        m.addConstrs(d[k] <= O[k] - s_C[k] for k in Stations[1:])
+        m.addConstrs(d[k] <= s_C[k] - O[k] for k in Stations[1:])
+
         # ------ OBJECTIVE -----------------------------------------------------------------------
         m.setObjective(W_V * (W_VN * (-V_O + V_B[0]) + W_VL * quicksum(V_B[k] - 1/2 * (
                 v_S_floor[k] + v_S_ceiling[k] + v_C_floor[k] + v_C_ceiling[k]) for k in Stations[1:-1])) + W_R * (
-                               R_O + r_F), GRB.MAXIMIZE)
+                               R_O + r_F) - W_D * (D_O + quicksum(d[k] for k in Stations[1:-1])), GRB.MAXIMIZE)
 
         m.optimize()
 
