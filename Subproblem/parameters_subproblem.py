@@ -56,13 +56,15 @@ class ParameterSub:
         self.W_VN = 0.7
         self.W_VL = 0.3
 
-        self.print_all_params()
+        self.print_all_params(pattern)
 
-    def print_all_params(self):
+    def print_all_params(self, pattern):
         print("Stations: ", self.stations)
         print("Charging Stations: ", self.charging_stations)
         print("Non Charging Stations: ", self.non_charging_stations)
         print("Depot index: ", self.depot_index)
+
+        print("Pattern: ", pattern)
 
         print("Q_S: ", self.Q_S)
         print("L_CS: ", self.L_CS)

@@ -4,21 +4,21 @@ import numpy as np
 
 class Station:
 
-        def __init__(self, latitude=None, longitude=None, charged_load=None, flat_load=None,
-                     incoming_charged_bike_rate=None, incoming_flat_bike_rate=None, ideal_state=None, station_id=None,
+        def __init__(self, latitude=None, longitude=None, charged_load=None, flat_load=None, ideal_state=None,
                      charging=False, depot=False, dockgroup_id=None, next_station_probabilities=None,
-                     station_travel_time=None,station_car_travel_time=None, name=None, actual_num_bikes=None,
-                     max_capacity=None, demand_per_hour=None):
-            self.id = station_id
+                     station_travel_time=None, station_car_travel_time=None, name=None, actual_num_bikes=None,
+                     max_capacity=None, demand_per_hour=None, battery_rate=0):
+            self.id = dockgroup_id
             self.latitude = latitude
             self.longitude = longitude
             self.station_cap = max_capacity
             self.charging_station = charging
+            self.battery_rate = battery_rate
             self.depot = depot
 
             # The following varies with scenario
-            self.incoming_charged_bike_rate = incoming_charged_bike_rate
-            self.incoming_flat_bike_rate = incoming_flat_bike_rate
+            self.incoming_charged_bike_rate = dict()
+            self.incoming_flat_bike_rate = dict()
             self.ideal_state = ideal_state
             self.current_charged_bikes = charged_load
             self.current_flat_bikes = flat_load
@@ -88,8 +88,7 @@ class Station:
             return next_prob/np.sum(next_prob)
 
         def get_outgoing_customer_rate(self, hour):
-            rate = self.demand_per_hour[hour] / 60
-            return rate
+            return self.demand_per_hour[hour]
 
         def get_incoming_charged_rate(self, hour):
             return self.incoming_charged_bike_rate[hour]

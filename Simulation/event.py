@@ -84,7 +84,7 @@ class VehicleEvent(Event):
         net_charged = abs(pattern[1] - pattern[3])
         net_flat = abs(pattern[2] - pattern[4])
         handling_time = (pattern[0] + net_charged + net_flat) * Event.handling_time
-        end_time = driving_time + handling_time + self.env.current_time
+        end_time = driving_time + handling_time + self.env.current_time + Event.parking_time
         self.env.vehicle_vis[self.vehicle.id][0].append(next_station.id)
         self.env.vehicle_vis[self.vehicle.id][1].append([self.vehicle.current_charged_bikes,
                                                          self.vehicle.current_flat_bikes, self.vehicle.current_batteries])

@@ -11,12 +11,11 @@ import copy
 
 class Environment:
 
-    charged_rate = 0.5
+    charged_rate = 0.95
 
     def __init__(self, start_hour, simulation_time, stations, vehicles, init_branching, scenarios, memory_mode=False,
                  trigger_start_stack=list(), greedy=False):
         self.stations = stations
-        self.stations[4].depot = True
         self.vehicles = vehicles
         self.current_time = start_hour * 60
         self.simulation_time = simulation_time
@@ -78,11 +77,11 @@ class Environment:
     def generate_trips(self, no_of_hours):
         total_start_stack = self.trigger_start_stack
         current_hour = self.current_time // 60
-        for hour in range(current_hour, current_hour + no_of_hours + 1):
+        for hour in range(current_hour, current_hour + no_of_hours):
             trigger_start = list()
             for st in self.stations:
                 if not st.depot:
-                    num_bikes_leaving = int(np.random.poisson(lam=st.demand_per_hour[hour], size=1)[0])
+                    num_bikes_leaving = int(np.random.poisson(lam=st.get_outgoing_customer_rate(hour), size=1)[0])
                     next_st_prob = st.get_subset_prob(self.stations)
                     for i in range(num_bikes_leaving):
                         start_time = random.randint(hour * 60, (hour+1) * 60)
@@ -116,6 +115,7 @@ class Environment:
         print("Total requested trips =", self.total_gen_trips)
         print("Starvations =", self.total_starvations)
         print("Congestions =", self.total_congestions)
+        print("---------------------------------------------------------------")
 
     def print_number_of_bikes(self):
         total_charged = 0
@@ -143,22 +143,21 @@ def run_solution_time_analysis():
 if __name__ == '__main__':
     # run_solution_time_analysis()
     # Single run
-    start_hour = 7
-    no_stations = 15
+    start_hour = 8
+    no_stations = 80
     branching = 2
     scenarios = 1
-    simulation_time = 60
-    stations = generate_all_stations(start_hour)[:no_stations]
+    simulation_time = 180
+    stations = generate_all_stations(start_hour, no_stations)
+    stations[4].depot = True
     veh = [Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=None, id=0)]
-    # veh2 = [Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=None, id=0)]
+    veh2 = [Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=None, id=0)]
     env_base = Environment(start_hour, simulation_time, stations, list(), branching, scenarios)
     stack_base = [copy.copy(trip) for trip in env_base.initial_stack]
-    """
     reset_stations(stations, start_hour)
     env3 = Environment(start_hour, simulation_time, stations, veh2, branching, scenarios,
                        trigger_start_stack=env_base.initial_stack, memory_mode=True,
                        greedy=True)
-    """
     reset_stations(stations, start_hour)
     env = Environment(start_hour, simulation_time, stations, veh, branching, scenarios, trigger_start_stack=stack_base,
                       memory_mode=True, greedy=False)
