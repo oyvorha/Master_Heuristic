@@ -77,9 +77,9 @@ class HeuristicManager:
         for i in range(self.no_scenarios):
             scenario = list()
             for station in self.station_set:
-                c1_times = HeuristicManager.poisson_simulation(station.get_incoming_charged_rate(self.hour), HeuristicManager.time_h)
-                c2_times = HeuristicManager.poisson_simulation(station.get_incoming_flat_rate(self.hour), HeuristicManager.time_h)
-                c3_times = HeuristicManager.poisson_simulation(station.get_outgoing_customer_rate(self.hour), HeuristicManager.time_h)
+                c1_times = HeuristicManager.poisson_simulation(station.get_incoming_charged_rate(self.hour) / 60, HeuristicManager.time_h)
+                c2_times = HeuristicManager.poisson_simulation(station.get_incoming_flat_rate(self.hour) / 60, HeuristicManager.time_h)
+                c3_times = HeuristicManager.poisson_simulation(station.get_outgoing_customer_rate(self.hour) / 60, HeuristicManager.time_h)
                 scenario.append([c1_times, c2_times, c3_times])
             self.customer_arrival_scenarios.append(scenario)
 
