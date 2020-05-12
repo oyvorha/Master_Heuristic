@@ -5,7 +5,7 @@ from Simulation.event import Event
 class Trip(Event):
 
     id = 0
-    bike_to_driving_factor = 2
+    bike_to_driving_factor = 1.3
 
     def __init__(self, start_st, end_st, start_time, stations, charged=True, num_bikes=1, rebalance="nearest"):
         Event.__init__(self, start_time)
