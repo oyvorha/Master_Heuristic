@@ -11,12 +11,11 @@ import copy
 
 class Environment:
 
-    charged_rate = 0.5
+    charged_rate = 0.95
 
     def __init__(self, start_hour, simulation_time, stations, vehicles, init_branching, scenarios, memory_mode=False,
                  trigger_start_stack=list(), greedy=False):
         self.stations = stations
-        self.stations[4].depot = True
         self.vehicles = vehicles
         self.current_time = start_hour * 60
         self.simulation_time = simulation_time
@@ -78,11 +77,11 @@ class Environment:
     def generate_trips(self, no_of_hours):
         total_start_stack = self.trigger_start_stack
         current_hour = self.current_time // 60
-        for hour in range(current_hour, current_hour + no_of_hours + 1):
+        for hour in range(current_hour, current_hour + no_of_hours):
             trigger_start = list()
             for st in self.stations:
                 if not st.depot:
-                    num_bikes_leaving = int(np.random.poisson(lam=st.demand_per_hour[hour], size=1)[0])
+                    num_bikes_leaving = int(np.random.poisson(lam=st.get_outgoing_customer_rate(hour), size=1)[0])
                     next_st_prob = st.get_subset_prob(self.stations)
                     for i in range(num_bikes_leaving):
                         start_time = random.randint(hour * 60, (hour+1) * 60)
