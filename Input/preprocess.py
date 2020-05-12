@@ -1,5 +1,4 @@
 import json
-from Station import Station
 from google.cloud import bigquery as bq
 from Simulation.set_up_simulation import setup_stations_students
 
@@ -11,7 +10,7 @@ def get_driving_time_from_id(station_id_1, station_id_2):
     return time_json[id_key]
 
 
-def generate_all_stations(init_hour):
+def generate_all_stations(init_hour, n):
     client = bq.Client('uip-students')
     valid_date = "2019-10-10"
     start_time = valid_date + " 06:00:00"
@@ -22,53 +21,43 @@ def generate_all_stations(init_hour):
     with open('../Input/station.json', 'r') as f:
         stations = json.load(f)
 
-    station_objects = []
-    for id, station in stations.items():
+    station_obj = list()
 
-        battery_rate = 0.5
-        flat_rate = 0.5
-        charging_station = False
-
-        if int(id) % 5 == 0:
-            battery_rate = 1
-            flat_rate = 0
-            charging_station = True
-
-        latitude = float(station[0])
-        longitude = float(station[1])
-
+    for id_json, station in stations.items():
         for st in stations_uip:
-            if st.dockgroup_id == id:
-                station_cap = st.station_cap
-                demand_per_hour = st.demand_per_hour
-                next_station_probabilities = st.next_station_probabilities
-                # Nå er antall sykler boostet
-                init_charged_load = min(station_cap, round(battery_rate * st.actual_num_bikes[init_hour], 0))
-                init_flat_load = min(station_cap - init_charged_load, round(flat_rate * st.actual_num_bikes[init_hour], 0))
-                incoming_flat_bike_rate = dict()
-                incoming_charged_bike_rate = dict()
-                for hour in range(24):
-                    try:
-                        incoming_flat_bike_rate[hour] = max(0, flat_rate * (st.actual_num_bikes[hour+1] -
-                                                                            st.actual_num_bikes[hour])) / 60
-
-                        if battery_rate * st.actual_num_bikes[init_hour+1] != 0:
-                            incoming_charged_bike_rate[hour] = max(0, (battery_rate * (st.actual_num_bikes[hour+1]
-                                                                                       - st.actual_num_bikes[hour]) +
-                                                                       demand_per_hour[hour])) / 60
-                        else:
-                            incoming_charged_bike_rate[hour] = 0
-                    except KeyError:
-                        incoming_flat_bike_rate[hour] = incoming_flat_bike_rate[hour-1]
-                        incoming_charged_bike_rate[hour] = incoming_charged_bike_rate[hour-1]
-
-                ideal_state = 10
-                obj = Station(latitude, longitude, init_charged_load, init_flat_load
-                              , incoming_charged_bike_rate, incoming_flat_bike_rate, ideal_state,
-                              id, next_station_probabilities=next_station_probabilities, demand_per_hour=demand_per_hour,
-                              max_capacity=station_cap, charging=charging_station)
-                station_objects.append(obj)
-    return station_objects
+            if st.id == id_json:
+                latitude = float(station[0])
+                longitude = float(station[1])
+                if int(st.id) % 5 == 0:
+                    st.battery_rate = 1
+                    st.charging_station = True
+                else:
+                    st.battery_rate = 0.95
+                st.latitude = latitude
+                st.longitude = longitude
+                st.ideal_state = st.station_cap // 2
+                st.current_charged_bikes = min(st.station_cap, round(st.battery_rate * st.actual_num_bikes[init_hour], 0))
+                st.current_flat_bikes = min(st.station_cap - st.current_charged_bikes, round((1 - st.battery_rate) * st.actual_num_bikes[init_hour], 0))
+                station_obj.append(st)
+    subset = station_obj[:n]
+    subset_ids = [s.id for s in subset]
+    for st1 in subset:
+        subset_prob = 0
+        for st_id, prob in st1.next_station_probabilities.items():
+            if st_id in subset_ids:
+                subset_prob += prob
+        for hour in range(24):
+            st1.demand_per_hour[hour] *= subset_prob
+        for s_id in subset_ids:
+            st1.next_station_probabilities[s_id] /= subset_prob
+    for st2 in subset:
+        for hour in range(24):
+            incoming = 0
+            for stat in subset:
+                incoming += stat.demand_per_hour[hour] * stat.next_station_probabilities[st2.id]
+            st2.incoming_charged_bike_rate[hour] = incoming * st2.battery_rate
+            st2.incoming_flat_bike_rate[hour] = incoming * (1-st2.battery_rate)
+    return subset
 
 
 def reset_stations(stations, init_hour):
