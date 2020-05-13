@@ -51,7 +51,7 @@ class ParameterSub:
         self.D = base_deviations + [0]
         self.D_O = D_O
         if route.stations[0].charging_station:
-            self.R_O = self.Q_FCU
+            self.R_O = max(0, self.Q_FCU - self.Q_FCL)
 
         # Weights
         self.W_V = 0.6
