@@ -26,7 +26,8 @@ class HeuristicManager:
         self.run_master_problem()
 
     def run_vehicle_subproblems(self, vehicle):
-        gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle, init_branching=self.init_branching)
+        gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle,
+                                   self.hour, init_branching=self.init_branching)
         gen.get_columns()
         self.route_patterns.append(gen)
         model_man = ModelManager(vehicle)
