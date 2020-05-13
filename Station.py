@@ -96,8 +96,10 @@ class Station:
     def get_incoming_flat_rate(self, hour):
         return self.incoming_flat_bike_rate[hour]
 
-    def get_criticality_score(self, time_horizon, hour, driving_time, w_viol, w_drive, w_dev):
+    def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev):
         # ------- Time to violation -------
+        if self.depot and vehicle.current_batteries < 2:
+            return 100000
         time_to_starvation = 10000
         time_to_congestion = 10000
         # Time to congestion

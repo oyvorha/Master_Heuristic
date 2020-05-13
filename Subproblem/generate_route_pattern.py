@@ -74,8 +74,8 @@ class GenerateRoutePattern:
                                 with open("../Input/times.json", 'r') as f:
                                     time_json = json.load(f)
                                     driving_time = time_json[id_key][0]
-
-                                score = st.get_criticality_score(self.time_horizon, self.hour, driving_time, self.w_viol,
+                                score = st.get_criticality_score(self.vehicle, self.time_horizon, self.hour,
+                                                                 driving_time, self.w_viol,
                                                                  self.w_drive, self.w_dev)
                                 cand_scores.append([st, driving_time, score])
 
