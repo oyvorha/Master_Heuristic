@@ -1,4 +1,5 @@
 import copy
+import json
 
 
 class Route:
@@ -36,8 +37,11 @@ class GenerateRoutePattern:
 
     flexibility = 3
     average_handling_time = 6
+    w_drive = 0.3
+    w_dev = 0.2
+    w_viol = 0.5
 
-    def __init__(self, starting_st, stations, vehicle, init_branching=8):
+    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, simple_candidate=False):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
@@ -45,6 +49,8 @@ class GenerateRoutePattern:
         self.patterns = None
         self.all_stations = stations
         self.init_branching = init_branching
+        self.hour = hour
+        self.simple_candidate = simple_candidate
 
     def get_columns(self):
         finished_routes = list()
@@ -52,17 +58,39 @@ class GenerateRoutePattern:
         while construction_routes:
             for col in construction_routes:
                 if col.length < (self.time_horizon - GenerateRoutePattern.flexibility):
-                    candidates = col.starting_station.get_candidate_stations(
-                        self.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=9)
-                    # SORT CANDIDATES BASED ON CRITICALITY HERE?
+
+                    if self.simple_candidate:
+                        cand_scores = col.starting_station.get_candidate_stations(
+                            self.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=9)
+                    # candidates = all stations
+                    else:
+                        candidates = self.all_stations
+                        cand_scores = list()
+
+                        # Calculate criticality score for all stations
+                        for st in candidates:
+                            if st not in col.stations:
+                                id_key = str(col.stations[-1].id) + '_' + str(st.id)
+                                with open("../Input/times.json", 'r') as f:
+                                    time_json = json.load(f)
+                                    driving_time = time_json[id_key][0]
+
+                                score = st.get_criticality_score(self.time_horizon, self.hour, driving_time, self.w_viol,
+                                                                 self.w_drive, self.w_dev)
+                                cand_scores.append([st, driving_time, score])
+
+                        # Sort candidates by criticality score
+                        cand_scores = sorted(cand_scores, key=lambda l: l[2], reverse=True)
+
+                    # Filtering (remember on/off opportunity)
+
+                    # Extend the route with the B best stations
                     for j in range(self.init_branching):
                         new_col = copy.deepcopy(col)
-                        if len(new_col.stations) == 1:
-                            new_col.add_station(candidates[j][0], candidates[j][1])
-                        else:
-                            new_col.add_station(candidates[j][0], candidates[j][1] +
-                                                GenerateRoutePattern.average_handling_time)
+                        new_col.add_station(cand_scores[j][0], cand_scores[j][1] +
+                                            GenerateRoutePattern.average_handling_time)
                         construction_routes.append(new_col)
+
                 else:
                     col.generate_extreme_decisions()
                     finished_routes.append(col)
