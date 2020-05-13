@@ -71,6 +71,7 @@ class ParameterSub:
         print("Pattern: ", pattern)
 
         print("Q_S: ", self.Q_S)
+        print("Ideal state: ", self.O)
         print("L_CS: ", self.L_CS)
         print("L_FS: ", self.L_FS)
         print("I_IC: ", self.I_IC)
