@@ -40,13 +40,10 @@ class Environment:
         self.print_number_of_bikes()
         while self.current_time < self.simulation_stop:
             self.event_trigger()
-        self.print_number_of_bikes()
-        self.status()
-        self.visualize_system()
+        self.end_simulation()
 
     def set_up_system(self):
         for veh1 in self.vehicles:
-            veh1.current_station = self.stations[veh1.id]
             self.trigger_stack.append(VehicleEvent(self.current_time, self.current_time, veh1, self, greedy=self.greedy))
         if not self.memory_mode:
             self.generate_trips(self.simulation_time // 60)
@@ -95,26 +92,32 @@ class Environment:
         self.initial_stack = [copy.copy(trip) for trip in self.trigger_start_stack]
         self.total_gen_trips += len(self.trigger_start_stack)
 
+    def end_simulation(self):
+        for st in self.stations:
+            self.total_congestions += st.total_congestions
+            self.total_starvations += st.total_starvations
+        self.visualize_system()
+        self.status()
+
     def visualize_system(self):
         json_stations = {}
         for station in self.stations:
             # [lat, long], charged bikes, flat bikes, starvation score, congestion score
             json_stations[station.id] = [[station.latitude, station.longitude], station.current_charged_bikes,
-                                         station.current_flat_bikes, int(station.charging_station), int(station.depot) * 5]
+                                         station.current_flat_bikes, int(station.charging_station), int(station.depot) * 5,
+                                         station.station_cap]
         with open('../Visualization/station_vis.json', 'w') as fp:
             json.dump(json_stations, fp)
         with open('../Visualization/vehicle.json', 'w') as f:
             json.dump(self.vehicle_vis, f)
 
     def status(self):
-        for st in self.stations:
-            self.total_congestions += st.total_congestions
-            self.total_starvations += st.total_starvations
         print("--------------------- SIMULATION STATUS -----------------------")
         print("Simulation time =", self.simulation_time, "minutes")
         print("Total requested trips =", self.total_gen_trips)
         print("Starvations =", self.total_starvations)
         print("Congestions =", self.total_congestions)
+        self.print_number_of_bikes()
         print("---------------------------------------------------------------")
 
     def print_number_of_bikes(self):
