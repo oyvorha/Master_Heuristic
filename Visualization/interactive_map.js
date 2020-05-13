@@ -14,9 +14,9 @@
 
     for (var key in station_json) {
         if (station_json.hasOwnProperty(key)) {
-            // [lat, long], charged bikes, flat bikes, starvations, congestions
+            // [lat, long], charged bikes, flat bikes, starvations, congestions, cap
             station_dict[key] = [station_json[key][0], station_json[key][1], station_json[key][2],
-                station_json[key][3], station_json[key][4]];
+                station_json[key][3], station_json[key][4], station_json[key][5]];
         }
     }
 
@@ -28,7 +28,8 @@
 
     for (var id in station_dict) {
         if (station_dict.hasOwnProperty(id)) {
-            var popup_msg = 'Station ID: ' +  id + ', ' + String(station_dict[id][1]) + ' charged bikes, '
+            var popup_msg = 'Station ID: ' +  id + ', Cap: ' + String(station_dict[id][5]) + ', ' +
+                String(station_dict[id][1]) + ' charged bikes, '
                 + String(station_dict[id][2]) +  ' flat bikes';
             var edge_col = color_dict[1];
             if (station_dict[id][3] > 0) {

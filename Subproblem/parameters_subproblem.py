@@ -1,7 +1,7 @@
 
 class ParameterSub:
 
-    def __init__(self, route, vehicle, pattern, customer_arrivals, L_CS, L_FS, base_violations, V_0, D_O):
+    def __init__(self, route, vehicle, pattern, customer_arrivals, L_CS, L_FS, base_violations, V_0, D_O, base_deviations):
         # Sets
         self.stations = [i for i in range(len(route.stations))]
         self.charging_stations = list()
@@ -48,9 +48,10 @@ class ParameterSub:
         self.V = base_violations + [0]
         self.V_O = V_0
         self.R_O = 0
+        self.D = base_deviations + [0]
         self.D_O = D_O
         if route.stations[0].charging_station:
-            self.R_O = self.Q_FCU
+            self.R_O = max(0, self.Q_FCU - self.Q_FCL)
 
         # Weights
         self.W_V = 0.6
@@ -70,6 +71,7 @@ class ParameterSub:
         print("Pattern: ", pattern)
 
         print("Q_S: ", self.Q_S)
+        print("Ideal state: ", self.O)
         print("L_CS: ", self.L_CS)
         print("L_FS: ", self.L_FS)
         print("I_IC: ", self.I_IC)
@@ -84,4 +86,6 @@ class ParameterSub:
 
         print("Base Violations: ", self.V)
         print("V_O: ", self.V_O)
+        print("Base Deviations: ", self.D)
+        print("D_O: ", self.D_O)
         print("R_O: ", self.R_O)

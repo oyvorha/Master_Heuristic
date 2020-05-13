@@ -32,6 +32,7 @@ def run_model(parameters):
         V_B = parameters.V
         V_O = parameters.V_O
         R_O = parameters.R_O
+        D_B = parameters.D
         D_O = parameters.D_O
         O = parameters.O
 
@@ -103,6 +104,7 @@ def run_model(parameters):
         for k in Charging_stations:
             m.addConstr(q_CCU[k] == 0)
             m.addConstr(q_FCL[k] == 0)
+            m.addConstr(q_B[k] == 0)
 
         # Reward
         m.addConstr(r_F <= quicksum(q_FCU[k] for k in Charging_stations))
@@ -114,13 +116,13 @@ def run_model(parameters):
         m.addConstrs(
             s_C[k] <= L_CS[k] + q_CCL[k] - q_CCL[k] + q_B[k] + I_IC[k] - I_OC[k]
             + (1 / 2) * (v_S_ceiling[k] + v_S_floor[k] - v_C_ceiling[k] - v_C_floor[k]) for k in Stations[1:])
-        m.addConstrs(d[k] <= O[k] - s_C[k] for k in Stations[1:])
-        m.addConstrs(d[k] <= s_C[k] - O[k] for k in Stations[1:])
+        m.addConstrs(d[k] >= O[k] - s_C[k] for k in Stations[1:])
+        m.addConstrs(d[k] >= s_C[k] - O[k] for k in Stations[1:])
 
         # ------ OBJECTIVE -----------------------------------------------------------------------
         m.setObjective(W_V * (W_VN * (-V_O + V_B[0]) + W_VL * quicksum(V_B[k] - 1/2 * (
                 v_S_floor[k] + v_S_ceiling[k] + v_C_floor[k] + v_C_ceiling[k]) for k in Stations[1:-1])) + W_R * (
-                               R_O + r_F) - W_D * (D_O + quicksum(d[k] for k in Stations[1:-1])), GRB.MAXIMIZE)
+                               R_O + r_F) + W_D * (-D_O + D_B[0] + quicksum(D_B[k] - d[k] for k in Stations[1:-1])), GRB.MAXIMIZE)
 
         m.optimize()
 
