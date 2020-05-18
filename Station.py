@@ -108,14 +108,14 @@ class Station:
                 self.demand_per_hour[hour] != 0):
             t_cong = (self.station_cap - self.current_charged_bikes - self.current_flat_bikes)/(
                 (self.incoming_flat_bike_rate[hour] + self.incoming_charged_bike_rate[hour] -
-                 self.demand_per_hour[hour]) * time_horizon / 60)
+                 self.demand_per_hour[hour]) / 60)
             if t_cong > 0:
                 time_to_congestion = t_cong
         # Time to starvation
         # Ensure that denominator != 0
         if (self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour]) != 0:
             t_starv = self.current_charged_bikes / ((self.demand_per_hour[hour]
-                        - self.incoming_charged_bike_rate[hour]) * time_horizon / 60)
+                        - self.incoming_charged_bike_rate[hour]) / 60)
             if t_starv > 0:
                 time_to_starvation = t_starv
         time_to_violation = min(time_to_starvation, time_to_congestion)
