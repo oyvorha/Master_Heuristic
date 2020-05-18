@@ -104,8 +104,8 @@ class Environment:
         for station in self.stations:
             # [lat, long], charged bikes, flat bikes, starvation score, congestion score
             json_stations[station.id] = [[station.latitude, station.longitude], station.current_charged_bikes,
-                                         station.current_flat_bikes, int(station.charging_station), int(station.depot) * 5,
-                                         station.station_cap]
+                                         station.current_flat_bikes, station.total_congestions, station.total_starvations,
+                                         station.station_cap, int(station.depot)]
         with open('../Visualization/station_vis.json', 'w') as fp:
             json.dump(json_stations, fp)
         with open('../Visualization/vehicle.json', 'w') as f:
@@ -146,21 +146,32 @@ def run_solution_time_analysis():
 if __name__ == '__main__':
     # run_solution_time_analysis()
     # Single run
-    start_hour = 8
-    no_stations = 80
-    branching = 2
-    scenarios = 1
-    simulation_time = 180
+    start_hour = 7
+    no_stations = 246
+    branching = 3
+    scenarios = 3
+    simulation_time = 60  # Set this to value divisible by 60
     stations = generate_all_stations(start_hour, no_stations)
     stations[4].depot = True
-    veh = [Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=None, id=0)]
-    veh2 = [Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=None, id=0)]
+    veh1 = Vehicle(init_battery_load=30, init_charged_bikes=30, init_flat_bikes=0, current_station=stations[0], id=0)
+    veh2 = Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=stations[1], id=1)
+    veh3 = Vehicle(init_battery_load=30, init_charged_bikes=30, init_flat_bikes=0, current_station=stations[0], id=0)
+    veh4 = Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=stations[1], id=1)
     env_base = Environment(start_hour, simulation_time, stations, list(), branching, scenarios)
     stack_base = [copy.copy(trip) for trip in env_base.initial_stack]
     reset_stations(stations, start_hour)
-    env3 = Environment(start_hour, simulation_time, stations, veh2, branching, scenarios,
+    env3 = Environment(start_hour, simulation_time, stations, [veh3, veh4], branching, scenarios,
                        trigger_start_stack=env_base.initial_stack, memory_mode=True,
                        greedy=True)
     reset_stations(stations, start_hour)
-    env = Environment(start_hour, simulation_time, stations, veh, branching, scenarios, trigger_start_stack=stack_base,
+    env = Environment(start_hour, simulation_time, stations, [veh1, veh2], branching, scenarios, trigger_start_stack=stack_base,
                       memory_mode=True, greedy=False)
+    print("----- SIMULATION COMPARISON ---------")
+    print("Simulation time =", simulation_time, "minutes")
+    print("Total requested trips =", env.total_gen_trips)
+    print("Starvations base=", env_base.total_starvations)
+    print("Congestions base=", env_base.total_congestions)
+    print("Starvations greedy=", env3.total_starvations)
+    print("Congestions greedy=", env3.total_congestions)
+    print("Starvations heur=", env.total_starvations)
+    print("Congestions heur=", env.total_congestions)
