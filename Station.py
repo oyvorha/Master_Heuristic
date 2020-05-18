@@ -39,7 +39,7 @@ class Station:
         self.total_starvations = 0
         self.total_congestions = 0
 
-    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=7, max_time=25):
+    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=50, max_time=25):
         closest_stations = list()
         for station in station_list:
             if station.id not in tabu_list:
@@ -73,7 +73,7 @@ class Station:
         return max(0, self.station_cap - self.current_flat_bikes - self.current_charged_bikes)
 
     def get_closest_station_with_capacity(self, stations, num_bikes):
-        closest = self.get_candidate_stations(stations, tabu_list=[self], max_candidates=10)
+        closest = self.get_candidate_stations(stations, tabu_list=[self.id], max_candidates=50, max_time=1000)
         for st in closest:
             if st[0].available_parking() >= num_bikes and self.id != st[0].id:
                 return st[0]
@@ -123,11 +123,11 @@ class Station:
         # Starving station
         if self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] > 0:
             charged_at_t = self.current_charged_bikes - (self.demand_per_hour[hour] -
-                    self.incoming_charged_bike_rate[hour]) * min (time_horizon, time_to_starvation)
+                    self.incoming_charged_bike_rate[hour]) * min(time_horizon, time_to_starvation)
         # Congesting station
         elif self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] < 0:
             charged_at_t = self.current_charged_bikes + (self.incoming_charged_bike_rate[hour]
-                    - self.demand_per_hour[hour]) * min (time_horizon, time_to_congestion)
+                    - self.demand_per_hour[hour]) * min(time_horizon, time_to_congestion)
         else:
             charged_at_t = self.current_charged_bikes
         dev = abs(self.ideal_state - charged_at_t)
