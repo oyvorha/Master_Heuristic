@@ -38,10 +38,10 @@ def run_master_model(parameters):
                          Scenarios},
                         vtype=GRB.CONTINUOUS, lb=0, ub=1, name="lam")
 
-        x = m.addVars({(i, v, s) for i in Stations for v in Vehicles for s in Scenarios}, vtype=GRB.BINARY,
+        x = m.addVars({(i, v, s) for i in Stations for v in Vehicles for s in Scenarios}, vtype=GRB.CONTINUOUS,
                       name="x")
 
-        x_nac = m.addVars({(i,v) for i in Stations for v in Vehicles}, vtype=GRB.CONTINUOUS, lb=0, name="x_nac")
+        x_nac = m.addVars({(i,v) for i in Stations for v in Vehicles}, vtype=GRB.BINARY, lb=0, name="x_nac")
         q_CCL_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
                              name="q_CCL_nac")
         q_FCL_nac = m.addVars({(v) for v in Vehicles}, vtype=GRB.INTEGER, lb=0,
@@ -54,8 +54,8 @@ def run_master_model(parameters):
                              name="q_B_nac")
 
         # ------ CONSTRAINTS -----------------------------------------------------------------------
-        m.addConstrs(quicksum(A[v][r][i] * lam[(v, r, p, s)] for r in Routes[v] for p in Patterns[v]) == x[(i, v, s)]
-                     for i in Stations for v in Vehicles for s in Scenarios)
+        m.addConstrs(quicksum(A[v][r][i] * quicksum(lam[(v, r, p, s)] for p in Patterns[v]) for r in Routes[v])
+                     == x[(i, v, s)] for i in Stations for v in Vehicles for s in Scenarios)
 
         m.addConstrs(x.sum('*', v, s) <= 1 for v in Vehicles for s in Scenarios)
         m.addConstrs(x.sum(i, '*', s) <= 1 for i in Swap_Stations for s in Scenarios)
@@ -75,7 +75,8 @@ def run_master_model(parameters):
         m.addConstrs(
             quicksum(lam[(v, r, p, s)] * Q_B[v][r][p] for r in Routes[v] for p in Patterns[v]) == q_B_nac[v] for v in
             Vehicles for s in Scenarios)
-        m.addConstrs(lam.sum(v, '*', '*', s) == 1 for v in Vehicles for s in Scenarios)
+        # m.addConstrs(quicksum(lam[(v, r, p, s)] for p in Patterns[v] for r in Routes[v]) == 1
+        #             for v in Vehicles for s in Scenarios)
 
         # Secure that first move is legal in terms of capacities
         m.addConstrs(q_CCL_nac[v] + q_FCL_nac[v] <= Q_CV[v] - L_FV[v] - L_CV[v] + q_CCU_nac[v] + q_FCU_nac[v] for v in

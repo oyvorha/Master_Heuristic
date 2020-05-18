@@ -1,4 +1,4 @@
-    var color_dict = {1: '#274c79', 2: '#f79051', 3: '#c10002'};
+    var color_dict = {1: '#274c79', 2: '#f79051', 3: '#c10002', 4: '#703e62'};
     var map = L.map('map').setView([59.9139, 10.7522], 13);
 
     L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
@@ -14,9 +14,9 @@
 
     for (var key in station_json) {
         if (station_json.hasOwnProperty(key)) {
-            // [lat, long], charged bikes, flat bikes, starvations, congestions, cap
+            // [lat, long], charged bikes, flat bikes, starvations, congestions, cap, depot
             station_dict[key] = [station_json[key][0], station_json[key][1], station_json[key][2],
-                station_json[key][3], station_json[key][4], station_json[key][5]];
+                station_json[key][3], station_json[key][4], station_json[key][5], station_json[key][6]];
         }
     }
 
@@ -34,15 +34,17 @@
             var edge_col = color_dict[1];
             if (station_dict[id][3] > 0) {
                 edge_col = color_dict[2]
-            } if (station_dict[id][3] > 2) {
+            } if (station_dict[id][3] > 20) {
                 edge_col = color_dict[3]
             }
 
             var fill_col = color_dict[1];
-            if (station_dict[id][4] > 0) {
-                fill_col = color_dict[2]
-            } if (station_dict[id][4] > 2) {
+            if (station_dict[id][6] > 0) {
+                fill_col = color_dict[4]
+            } else if (station_dict[id][4] > 20) {
                 fill_col = color_dict[3]
+            } else if (station_dict[id][4] > 0) {
+                fill_col = color_dict[2]
             }
 
             var station = L.circle(station_dict[id][0], {
