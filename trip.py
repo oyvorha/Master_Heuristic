@@ -1,4 +1,3 @@
-from Input.preprocess import get_driving_time_from_id
 from Simulation.event import Event
 
 
@@ -11,7 +10,7 @@ class Trip(Event):
         Event.__init__(self, start_time)
         self.start_station = start_st
         self.end_station = end_st
-        self.driving_time = get_driving_time_from_id(start_st.id, end_st.id)[0]
+        self.driving_time = start_st.station_car_travel_time[self.end_station.id]
         self.end_time = self.start_time + self.driving_time * Trip.bike_to_driving_factor
         self.charged = charged
         self.num_bikes = num_bikes
@@ -44,9 +43,8 @@ class Trip(Event):
                 self.end_station.total_congestions += 1
                 closest_non_full_station = self.end_station.get_closest_station_with_capacity(self.stations,
                                                                                               self.num_bikes)
-                self.end_time += (get_driving_time_from_id(self.end_station.id,
-                                                           closest_non_full_station.id)[
-                                      0] * Trip.bike_to_driving_factor)
+                self.end_time += self.end_station.station_car_travel_time[
+                                     closest_non_full_station.id] * Trip.bike_to_driving_factor
 
                 self.end_station = closest_non_full_station
                 self.redirect = True

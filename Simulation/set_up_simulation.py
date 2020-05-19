@@ -45,8 +45,7 @@ def setup_stations_students(client):
             try:
                 station_car_travel_time = car_movement_input[station_id]
             except:
-                station_car_travel_time = {station: float(time)*3 for station, time in movement_input[station_id]["avg_trip_duration"].items()}
-
+                station_car_travel_time = {station: float(time) * 3 / 60 for station, time in movement_input[station_id]["avg_trip_duration"].items()}
 
             s = Station(
                 dockgroup_id=dockgroup_id,
@@ -58,9 +57,8 @@ def setup_stations_students(client):
                 max_capacity=max_capacity,
                 demand_per_hour=demand_per_hour,
                 )
-
+            station_car_travel_time[s.id] = 0
             stations.append(s)
-
     return stations
 
 
@@ -155,7 +153,7 @@ def get_input_data_from_movement_df(movement_df, datestring, snapshot_keys):
     data = dict()
     mf = movement_df
     # remove stations that are not in dockgroup snapshot query
-    mf = mf[(mf.start_dock_id.isin(snapshot_keys)) &  (mf.end_dock_id.isin(snapshot_keys))]
+    mf = mf[(mf.start_dock_id.isin(snapshot_keys)) & (mf.end_dock_id.isin(snapshot_keys))]
 
     g = mf.groupby("start_dock_id")
     all_dock_ids = [data[0] for data in g]
@@ -231,11 +229,11 @@ def get_input_data_from_demand_df(demand_df, snapshot_keys):
 
 
 def get_input_data_from_car_movement_df(car_movement_df, snapshot_keys):
-    car_movement_df = car_movement_df[car_movement_df.isin(snapshot_keys)]
+    car_movement_df = car_movement_df[car_movement_df["start_station_id"].isin(snapshot_keys)]
     data = dict()
 
     for station_id, df in car_movement_df.groupby("start_station_id"):
-        station_data = dict(zip(df.end_station_id, df.driving_time*60)) #to sec
+        station_data = dict(zip(df.end_station_id, df.driving_time))  # Removed sec conversion
         data[station_id] = station_data
 
     return data

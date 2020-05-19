@@ -1,5 +1,4 @@
 import random
-from Input.preprocess import get_driving_time_from_id
 from Simulation.heuristic_manager import HeuristicManager
 import time
 
@@ -65,7 +64,7 @@ class VehicleEvent(Event):
         self.env.vehicle_vis[self.vehicle.id][0].append(next_station.id)
         self.env.vehicle_vis[self.vehicle.id][2].append([swaps, net_charged, net_flat, net_charged, net_flat])
         handling_time = (swaps + net_flat + net_charged) * Event.handling_time
-        driving_time = get_driving_time_from_id(self.vehicle.current_station.id, next_station.id)[0]
+        driving_time = self.vehicle.current_station.station_car_travel_time[next_station.id]
         self.vehicle.current_station = next_station
         end_time = self.env.current_time + driving_time + handling_time + Event.parking_time
         self.env.trigger_stack.append(VehicleEvent(self.env.current_time, end_time, self.vehicle, self.env, self.greedy))
@@ -80,7 +79,7 @@ class VehicleEvent(Event):
 
         # Index of vehicle that triggered event
         next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
-        driving_time = get_driving_time_from_id(self.vehicle.current_station.id, next_station.id)[0]
+        driving_time = self.vehicle.current_station.station_car_travel_time[next_station.id]
         net_charged = abs(pattern[1] - pattern[3])
         net_flat = abs(pattern[2] - pattern[4])
         handling_time = (pattern[0] + net_charged + net_flat) * Event.handling_time

@@ -2,7 +2,7 @@ import unittest
 from Subproblem.generate_route_pattern import GenerateRoutePattern, Route
 from vehicle import Vehicle
 from Station import Station
-from Input.preprocess import generate_all_stations, get_driving_time_from_id
+from Input.preprocess import generate_all_stations
 
 
 class RouteGenTester(unittest.TestCase):
@@ -25,7 +25,7 @@ class RouteGenTester(unittest.TestCase):
         route = RouteGenTester.test_route
         for i in [3, 5, 9]:
             next_station = RouteGenTester.test_stations[i]
-            added_time = get_driving_time_from_id(route.stations[0].id, next_station.id)[0]
+            added_time = route.stations[0].station_car_travel_time[next_station.id]
             route.add_station(next_station, added_time)
         self.assertEqual(route.station_visits, [0, 13.18, 21.0, 30.25])
 
