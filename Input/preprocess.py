@@ -18,27 +18,19 @@ def generate_all_stations(init_hour, n):
     stations_uip = setup_stations_students(client)
     print("UIP DB objects collected")
 
-    with open('../Input/station.json', 'r') as f:
-        stations = json.load(f)
-
     station_obj = list()
 
-    for id_json, station in stations.items():
-        for st in stations_uip:
-            if st.id == id_json:
-                latitude = float(station[0])
-                longitude = float(station[1])
-                if int(st.id) % 5 == 0:
-                    st.battery_rate = 1
-                    st.charging_station = True
-                else:
-                    st.battery_rate = 0.95
-                st.latitude = latitude
-                st.longitude = longitude
-                st.ideal_state = st.station_cap // 2
-                st.current_charged_bikes = min(st.station_cap, round(st.battery_rate * st.actual_num_bikes[init_hour], 0))
-                st.current_flat_bikes = min(st.station_cap - st.current_charged_bikes, round((1 - st.battery_rate) * st.actual_num_bikes[init_hour], 0))
-                station_obj.append(st)
+    for st in stations_uip:
+            if int(st.id) % 5 == 0:
+                st.battery_rate = 1
+                st.charging_station = True
+            else:
+                st.battery_rate = 0.95
+            print(st.latitude, st.longitude)
+            st.ideal_state = st.station_cap // 2
+            st.current_charged_bikes = min(st.station_cap, round(st.battery_rate * st.actual_num_bikes[init_hour], 0))
+            st.current_flat_bikes = min(st.station_cap - st.current_charged_bikes, round((1 - st.battery_rate) * st.actual_num_bikes[init_hour], 0))
+            station_obj.append(st)
     subset = station_obj[:n]
     subset_ids = [s.id for s in subset]
     for st1 in subset:
