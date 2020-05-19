@@ -12,7 +12,10 @@ def setup_stations_students(client):
     snapshot_query = "SELECT * FROM `uip-students.loaded_data.simulation_dockgroup_snapshots`"
     dockgroup_movement_query = "SELECT * FROM `uip-students.loaded_data.simulation_station_movement_info`"
     driving_time_query = "SELECT * FROM `uip-students.loaded_data.simulation_driving_times`"
+    coordinate_query = "SELECT DISTINCT dock_group_id, dock_group_coords.latitude, dock_group_coords.longitude FROM `uip-students.loaded_data.stations_snapshots`"
 
+    coordinates = get_data_from_bq(coordinate_query, client)
+    coordinate_dict = get_input_data_from_coordinate_df(coordinates)
     demand_df = get_data_from_bq(demand_query, client)
     snapshot_df = get_data_from_bq(snapshot_query, client)
     movement_df = get_data_from_bq(dockgroup_movement_query, client)
@@ -41,15 +44,17 @@ def setup_stations_students(client):
             max_capacity = snapshot_input[station_id]["max_capacity"]
             demand_per_hour = demand_input[station_id] if station_id in demand_input else {i: 0 for i in range(6, 24)}
             actual_num_bikes = snapshot_input[station_id]["bikes"]
+            latitude = coordinate_dict[station_id][0]
+            longitude = coordinate_dict[station_id][1]
 
             try:
                 station_car_travel_time = car_movement_input[station_id]
             except:
                 station_car_travel_time = {station: float(time)*3 for station, time in movement_input[station_id]["avg_trip_duration"].items()}
 
-
             s = Station(
                 dockgroup_id=dockgroup_id,
+                latitude=latitude, longitude=longitude,
                 next_station_probabilities=next_station_probabilities,
                 station_travel_time=station_travel_time,
                 station_car_travel_time=station_car_travel_time,
@@ -214,6 +219,13 @@ def get_input_data_from_snapshot_df(df, datestring):
 
         data[id] = dock_info
 
+    return data
+
+
+def get_input_data_from_coordinate_df(df):
+    data = dict()
+    for index, row in df.iterrows():
+        data[row[0]] = [row[1], row[2]]
     return data
 
 
