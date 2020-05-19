@@ -1,7 +1,6 @@
 import json
 from google.cloud import bigquery as bq
 from Simulation.set_up_simulation import setup_stations_students
-from Input.Google_API import *
 
 
 def get_driving_time_from_id(station_id_1, station_id_2):
@@ -50,7 +49,6 @@ def generate_all_stations(init_hour, n):
                 incoming += stat.demand_per_hour[hour] * stat.next_station_probabilities[st2.id]
             st2.incoming_charged_bike_rate[hour] = incoming * st2.battery_rate
             st2.incoming_flat_bike_rate[hour] = incoming * (1-st2.battery_rate)
-    # write_driving_times(subset)
     return subset
 
 
