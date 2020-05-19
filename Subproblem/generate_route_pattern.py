@@ -23,8 +23,11 @@ class Route:
         swap, bat_load, flat_load, bat_unload, flat_unload = (0, 0, 0, 0, 0)
         if not self.starting_station.depot:
             if policy == 'greedy':
-                bat_load = min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity())
-                bat_unload = min(self.vehicle.current_charged_bikes, self.starting_station.available_parking())
+                # Make ideal state artificially lower for increased flexibility --> Temporarily set to 3
+                bat_load = max(0, min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity(),
+                                      self.starting_station.current_charged_bikes - self.starting_station.ideal_state - 3))
+                bat_unload = max(0, min(self.vehicle.current_charged_bikes, self.starting_station.available_parking(),
+                                 self.starting_station.ideal_state - self.starting_station.current_charged_bikes))
                 flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_bike_capacity())
                 flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
                 swap = min(self.vehicle.current_batteries,
@@ -37,6 +40,8 @@ class GenerateRoutePattern:
 
     flexibility = 3
     average_handling_time = 6
+
+    # Criticality weights
     w_drive = 0.3
     w_dev = 0.2
     w_viol = 0.5
