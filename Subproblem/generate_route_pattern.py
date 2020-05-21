@@ -75,10 +75,7 @@ class GenerateRoutePattern:
                         # Calculate criticality score for all stations
                         for st in candidates:
                             if st not in col.stations:
-                                id_key = str(col.stations[-1].id) + '_' + str(st.id)
-                                with open("../Input/times.json", 'r') as f:
-                                    time_json = json.load(f)
-                                    driving_time = time_json[id_key][0]
+                                driving_time = col.stations[-1].get_station_car_travel_time(st.id)
                                 score = st.get_criticality_score(self.vehicle, self.time_horizon, self.hour,
                                                                  driving_time, self.w_viol,
                                                                  self.w_drive, self.w_dev)

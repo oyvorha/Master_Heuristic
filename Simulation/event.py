@@ -6,7 +6,7 @@ import time
 class Event:
 
     handling_time = 0.3
-    parking_time = 2
+    parking_time = 0
     id = 0
 
     def __init__(self, start_time):
@@ -64,22 +64,22 @@ class VehicleEvent(Event):
         self.env.vehicle_vis[self.vehicle.id][0].append(next_station.id)
         self.env.vehicle_vis[self.vehicle.id][2].append([swaps, net_charged, net_flat, net_charged, net_flat])
         handling_time = (swaps + net_flat + net_charged) * Event.handling_time
-        driving_time = self.vehicle.current_station.station_car_travel_time[next_station.id]
+        driving_time = self.vehicle.current_station.get_station_car_travel_time(next_station.id)
         self.vehicle.current_station = next_station
         end_time = self.env.current_time + driving_time + handling_time + Event.parking_time
         self.env.trigger_stack.append(VehicleEvent(self.env.current_time, end_time, self.vehicle, self.env, self.greedy))
         self.env.trigger_stack = sorted(self.env.trigger_stack, key=lambda l: l.end_time)
 
     def heuristic_solve(self):
-        start = time.time()
         hour = self.env.current_time // 60
+        start = time.time()
         heuristic_man = HeuristicManager(self.env.vehicles, self.env.stations, hour,
                                          no_scenarios=self.env.scenarios, init_branching=self.env.init_branching)
         self.event_time = time.time() - start
 
         # Index of vehicle that triggered event
         next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
-        driving_time = self.vehicle.current_station.station_car_travel_time[next_station.id]
+        driving_time = self.vehicle.current_station.get_station_car_travel_time(next_station.id)
         net_charged = abs(pattern[1] - pattern[3])
         net_flat = abs(pattern[2] - pattern[4])
         handling_time = (pattern[0] + net_charged + net_flat) * Event.handling_time

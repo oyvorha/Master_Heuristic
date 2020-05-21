@@ -1,6 +1,7 @@
 import json
 from google.cloud import bigquery as bq
 from Simulation.set_up_simulation import setup_stations_students
+from Input.Google_API import write_driving_times
 
 
 def get_driving_time_from_id(station_id_1, station_id_2):
@@ -12,13 +13,9 @@ def get_driving_time_from_id(station_id_1, station_id_2):
 
 def generate_all_stations(init_hour, n):
     client = bq.Client('uip-students')
-    valid_date = "2019-10-10"
-    start_time = valid_date + " 06:00:00"
-    system_name = "oslobysykkel"
+    # valid_date = "2019-10-10"
     stations_uip = setup_stations_students(client)
     print("UIP DB objects collected")
-
-    station_obj = list()
 
     for st in stations_uip:
             if int(st.id) % 5 == 0:
@@ -26,12 +23,10 @@ def generate_all_stations(init_hour, n):
                 st.charging_station = True
             else:
                 st.battery_rate = 0.95
-            print(st.latitude, st.longitude)
             st.ideal_state = st.station_cap // 2
             st.current_charged_bikes = min(st.station_cap, round(st.battery_rate * st.actual_num_bikes[init_hour], 0))
             st.current_flat_bikes = min(st.station_cap - st.current_charged_bikes, round((1 - st.battery_rate) * st.actual_num_bikes[init_hour], 0))
-            station_obj.append(st)
-    subset = station_obj[:n]
+    subset = stations_uip[:n]
     subset_ids = [s.id for s in subset]
     for st1 in subset:
         subset_prob = 0
