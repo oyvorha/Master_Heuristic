@@ -39,20 +39,17 @@ class Station:
         self.total_starvations = 0
         self.total_congestions = 0
 
-    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=50, max_time=25):
+    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=50, max_time=1000):
         closest_stations = list()
         for station in station_list:
             if station.id not in tabu_list:
-                id_key = str(self.id) + '_' + str(station.id)
-                with open("../Input/times.json", 'r') as f:
-                    time_json = json.load(f)
-                    st_time = time_json[id_key][0]
-                    if len(closest_stations) < max_candidates and st_time < max_time:
-                        closest_stations.append([station, st_time])
-                    else:
-                        if len(closest_stations) > 0 and closest_stations[-1][-1] > st_time:
-                            closest_stations[-1] = [station, st_time]
-                closest_stations = sorted(closest_stations, key=lambda l: l[1])
+                st_time = self.get_station_car_travel_time(station.id)
+                if len(closest_stations) < max_candidates and st_time < max_time:
+                    closest_stations.append([station, st_time])
+                else:
+                    if len(closest_stations) > 0 and closest_stations[-1][-1] > st_time:
+                        closest_stations[-1] = [station, st_time]
+            closest_stations = sorted(closest_stations, key=lambda l: l[1])
         return closest_stations
 
     def change_charged_load(self, charged_bikes):
@@ -132,3 +129,6 @@ class Station:
             charged_at_t = self.current_charged_bikes
         dev = abs(self.ideal_state - charged_at_t)
         return - w_viol * time_to_violation - w_drive * driving_time + w_dev * dev
+
+    def get_station_car_travel_time(self, end_st_id, json_times=True):
+        return self.station_car_travel_time[end_st_id]

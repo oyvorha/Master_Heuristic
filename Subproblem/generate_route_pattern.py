@@ -46,7 +46,7 @@ class GenerateRoutePattern:
     w_dev = 0.2
     w_viol = 0.5
 
-    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, simple_candidate=False):
+    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, simple_candidate=False, dynamic=False):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
@@ -56,6 +56,7 @@ class GenerateRoutePattern:
         self.init_branching = init_branching
         self.hour = hour
         self.simple_candidate = simple_candidate
+        self.dynamic = dynamic
 
     def get_columns(self):
         finished_routes = list()
@@ -75,10 +76,7 @@ class GenerateRoutePattern:
                         # Calculate criticality score for all stations
                         for st in candidates:
                             if st not in col.stations:
-                                id_key = str(col.stations[-1].id) + '_' + str(st.id)
-                                with open("../Input/times.json", 'r') as f:
-                                    time_json = json.load(f)
-                                    driving_time = time_json[id_key][0]
+                                driving_time = col.stations[-1].get_station_car_travel_time(st.id)
                                 score = st.get_criticality_score(self.vehicle, self.time_horizon, self.hour,
                                                                  driving_time, self.w_viol,
                                                                  self.w_drive, self.w_dev)
@@ -100,7 +98,7 @@ class GenerateRoutePattern:
                     col.generate_extreme_decisions()
                     finished_routes.append(col)
                 construction_routes.remove(col)
-                if self.init_branching > 1:
+                if self.init_branching > 1 and self.dynamic:
                     self.init_branching -= 1
         self.finished_gen_routes = finished_routes
         self.gen_patterns()

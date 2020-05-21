@@ -47,10 +47,7 @@ def setup_stations_students(client):
             latitude = coordinate_dict[station_id][0]
             longitude = coordinate_dict[station_id][1]
 
-            try:
-                station_car_travel_time = car_movement_input[station_id]
-            except:
-                station_car_travel_time = {station: float(time) * 3 / 60 for station, time in movement_input[station_id]["avg_trip_duration"].items()}
+            station_car_travel_time = car_movement_input[station_id]
 
             s = Station(
                 dockgroup_id=dockgroup_id,
@@ -63,8 +60,22 @@ def setup_stations_students(client):
                 max_capacity=max_capacity,
                 demand_per_hour=demand_per_hour,
                 )
-            station_car_travel_time[s.id] = 0
-            stations.append(s)
+            s.station_car_travel_time[s.id] = 0
+
+            add = True
+            for value in s.station_car_travel_time.values():
+                if value > 100:
+                    add = False
+            if add:
+                stations.append(s)
+    count = 0
+    for st1 in stations:
+        for st2 in stations:
+            if st2.id not in st1.station_car_travel_time.keys():
+                st1.station_car_travel_time[st2.id] = 20
+                count += 1
+    print("Missing", count)
+    print("# Stations", len(stations))
     return stations
 
 
