@@ -1,8 +1,8 @@
 import pandas as pd
 from openpyxl import load_workbook
 
-book = load_workbook("../Output/output.xlsx")
-writer = pd.ExcelWriter("../Output/output.xlsx", engine='openpyxl')
+book = load_workbook("Output/output.xlsx")
+writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
 writer.book = book
 
 df_keys = []

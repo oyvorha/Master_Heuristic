@@ -20,6 +20,8 @@ class Station:
         self.incoming_charged_bike_rate = dict()
         self.incoming_flat_bike_rate = dict()
         self.ideal_state = ideal_state
+        self.init_charged = charged_load
+        self.init_flat = flat_load
         self.current_charged_bikes = charged_load
         self.current_flat_bikes = flat_load
 

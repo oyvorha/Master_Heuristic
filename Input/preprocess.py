@@ -26,6 +26,8 @@ def generate_all_stations(init_hour, n):
             st.ideal_state = st.station_cap // 2
             st.current_charged_bikes = min(st.station_cap, round(st.battery_rate * st.actual_num_bikes[init_hour], 0))
             st.current_flat_bikes = min(st.station_cap - st.current_charged_bikes, round((1 - st.battery_rate) * st.actual_num_bikes[init_hour], 0))
+            st.init_charged = st.current_charged_bikes
+            st.init_flat = st.current_flat_bikes
     subset = stations_uip[:n]
     subset_ids = [s.id for s in subset]
     for st1 in subset:
@@ -47,21 +49,15 @@ def generate_all_stations(init_hour, n):
     return subset
 
 
-def reset_stations(stations, init_hour):
-    client = bq.Client('uip-students')
-    temp_stations_uip = setup_stations_students(client)
-    print("UIP DB reset objects collected")
+def reset_stations(stations):
 
     for station in stations:
 
         station.total_starvations = 0
         station.total_congestions = 0
 
-        for st in temp_stations_uip:
-            if st.id == station.id:
-                station.current_charged_bikes = min(station.station_cap, round(station.battery_rate * st.actual_num_bikes[init_hour], 0))
-                station.current_flat_bikes = min(station.station_cap - station.current_charged_bikes,
-                                                 round((1-station.battery_rate) * st.actual_num_bikes[init_hour], 0))
+        station.current_charged_bikes = station.init_charged
+        station.current_flat_bikes = station.init_flat
 
 
 def get_index(station_id, stations):
