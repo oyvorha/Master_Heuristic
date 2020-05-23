@@ -46,3 +46,24 @@ def save_weight_output(set_id, scenario, env, base_s, base_c):
         weight_df.to_excel(writer, index=False, sheet_name='Weight_simulation')
         writer.save()
         df_keys.append('Weight_simulation')
+
+
+def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_c):
+    df = pd.DataFrame(columns=['Scenario', 'Total_requests', 'Base starvations', 'Base congestions',
+                               'Greedy starvations', 'Greedy congestions', 'Heuristic starvations',
+                               'Heuristic congestions'])
+
+    new_row = {'Scenario': scenario, 'Total_requests': sim_heur.total_gen_trips, 'Base starvations': base_s,
+               'Base congestions': base_c, 'Greedy starvations': greedy_s, 'Greedy congestions': greedy_s,
+               'Heuristic starvations': sim_heur.total_starvations, 'Heuristic congestions': sim_heur.total_congestions}
+
+    weight_df = df.append(new_row, ignore_index=True)
+
+    if 'Compare_strategies' in df_keys:
+        start_row = writer.sheets['Compare_strategies'].max_row
+        weight_df.to_excel(writer, startrow=start_row, index=False, header=False, sheet_name='Compare_strategies')
+        writer.save()
+    else:
+        weight_df.to_excel(writer, index=False, sheet_name='Compare_strategies')
+        writer.save()
+        df_keys.append('Compare_strategies')
