@@ -10,7 +10,7 @@ class HeuristicManager:
 
     time_h = 25
 
-    def __init__(self, vehicles, station_full_set, hour, no_scenarios=1, init_branching=7):
+    def __init__(self, vehicles, station_full_set, hour, no_scenarios=1, init_branching=7, weights=None):
         self.no_scenarios = no_scenarios
         self.customer_arrival_scenarios = list()
         self.vehicles = vehicles
@@ -20,6 +20,7 @@ class HeuristicManager:
         self.master_solution = None
         self.init_branching = init_branching
         self.hour = hour
+        self.weights = weights
 
         self.generate_scenarios()
         self.run_subproblems()
@@ -38,7 +39,8 @@ class HeuristicManager:
             for pattern in gen.patterns:
                 scenario_scores = list()
                 for customer_scenario in self.customer_arrival_scenarios:
-                    score = model_man.run_one_subproblem(route, route_full_set_index, pattern, customer_scenario)
+                    score = model_man.run_one_subproblem(route, route_full_set_index, pattern, customer_scenario,
+                                                         self.weights)
                     scenario_scores.append(score)
                 pattern_scores.append(scenario_scores)
             route_scores.append(pattern_scores)

@@ -10,7 +10,7 @@ class ModelManager:
         self.vehicle = vehicle
         self.scores = list()
 
-    def run_one_subproblem(self, route, route_full_set_index, pattern, customer_scenario):
+    def run_one_subproblem(self, route, route_full_set_index, pattern, customer_scenario, weights):
         customer_arrivals = ModelManager.arrivals_after_visit(route, route_full_set_index, customer_scenario)
         L_CS = list()
         L_FS = list()
@@ -29,7 +29,8 @@ class ModelManager:
             L_FS.append(st_L_FS)
             base_viol.append(st_viol)
             base_dev.append(st_dev)
-        params = ParameterSub(route, self.vehicle, pattern, customer_arrivals, L_CS, L_FS, base_viol, V_0, D_0, base_dev)
+        params = ParameterSub(route, self.vehicle, pattern, customer_arrivals, L_CS, L_FS, base_viol, V_0, D_0, base_dev,
+                              weights)
         return run_model(params)
 
     """

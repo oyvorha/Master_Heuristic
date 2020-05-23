@@ -1,7 +1,8 @@
 
 class ParameterSub:
 
-    def __init__(self, route, vehicle, pattern, customer_arrivals, L_CS, L_FS, base_violations, V_0, D_O, base_deviations):
+    def __init__(self, route, vehicle, pattern, customer_arrivals, L_CS, L_FS, base_violations, V_0, D_O, base_deviations,
+                 weights):
         # Sets
         self.stations = [i for i in range(len(route.stations))]
         self.charging_stations = list()
@@ -54,13 +55,9 @@ class ParameterSub:
             self.R_O = max(0, self.Q_FCU - self.Q_FCL)
 
         # Weights
-        self.W_V = 0.6
-        self.W_R = 0.1
-        self.W_VN = 0.7
-        self.W_VL = 0.3
-        self.W_D = 0.3
+        self.W_V, self.W_R, self.W_D, self.W_VN, self.W_VL = weights
 
-        self.print_all_params(pattern)
+        # self.print_all_params(pattern)
 
     def print_all_params(self, pattern):
         print("Stations: ", self.stations)

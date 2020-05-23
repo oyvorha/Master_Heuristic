@@ -1,8 +1,5 @@
-from Input.preprocess import generate_all_stations, reset_stations
-from vehicle import Vehicle
 import json
 import random
-from Output.save_to_excel import save_time_output
 import numpy as np
 from trip import Trip
 from Simulation.event import VehicleEvent
@@ -14,7 +11,7 @@ class Environment:
     charged_rate = 0.95
 
     def __init__(self, start_hour, simulation_time, stations, vehicles, init_branching, scenarios, memory_mode=False,
-                 trigger_start_stack=list(), greedy=False):
+                 trigger_start_stack=list(), greedy=False, weights=(0.6, 0.3, 0.1, 0.7, 0.3)):
         self.stations = stations
         self.vehicles = vehicles
         self.current_time = start_hour * 60
@@ -25,6 +22,7 @@ class Environment:
         self.init_branching = init_branching
         self.scenarios = scenarios
         self.greedy = greedy
+        self.weights = weights
         self.event_times = list()
 
         self.memory_mode = memory_mode
@@ -38,6 +36,8 @@ class Environment:
 
         self.vehicle_vis = {v.id: [[v.current_station.id], [], [], []] for v in self.vehicles}
         self.print_number_of_bikes()
+
+    def run_simulation(self):
         while self.current_time < self.simulation_stop:
             self.event_trigger()
         self.end_simulation()
@@ -71,8 +71,11 @@ class Environment:
             self.trigger_stack.append(event)
             self.trigger_stack = sorted(self.trigger_stack, key=lambda l: l.end_time)
 
-    def generate_trips(self, no_of_hours):
-        total_start_stack = self.trigger_start_stack
+    def generate_trips(self, no_of_hours, gen=False):
+        if not gen:
+            total_start_stack = self.trigger_start_stack
+        else:
+            total_start_stack = list()
         current_hour = self.current_time // 60
         for hour in range(current_hour, current_hour + no_of_hours):
             trigger_start = list()
@@ -89,8 +92,10 @@ class Environment:
                         trigger_start.append(trip)
             total_start_stack += trigger_start
         self.trigger_start_stack = sorted(total_start_stack, key=lambda l: l.start_time)
-        self.initial_stack = [copy.copy(trip) for trip in self.trigger_start_stack]
+        init_stack = [copy.copy(trip) for trip in self.trigger_start_stack]
+        self.initial_stack = init_stack
         self.total_gen_trips += len(self.trigger_start_stack)
+        return init_stack
 
     def end_simulation(self):
         for st in self.stations:
@@ -106,9 +111,9 @@ class Environment:
             json_stations[station.id] = [[station.latitude, station.longitude], station.current_charged_bikes,
                                          station.current_flat_bikes, station.total_congestions, station.total_starvations,
                                          station.station_cap, int(station.depot)]
-        with open('../Visualization/station_vis.json', 'w') as fp:
+        with open('Visualization/station_vis.json', 'w') as fp:
             json.dump(json_stations, fp)
-        with open('../Visualization/vehicle.json', 'w') as f:
+        with open('Visualization/vehicle.json', 'w') as f:
             json.dump(self.vehicle_vis, f)
 
     def status(self):
@@ -128,50 +133,3 @@ class Environment:
             total_flat += station.current_flat_bikes
         print("Total charged: ", total_charged)
         print("Total flat: ", total_flat)
-
-
-def run_solution_time_analysis():
-    for scenarios in [20, 30, 40, 50]:
-        for vehicles in [1, 2, 3, 4, 5]:
-            veh = list()
-            for i in range(vehicles):
-                veh.append(Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=None, id=i))
-            for branching in [1, 2, 3, 4, 5, 6]:
-                for stations in [10, 30, 50, 70]:
-                    env = Environment(0, stations, veh, branching, scenarios)
-                    # save_time_output(stations, branching, scenarios, vehicles, env.event_times)
-                    print("OUTPUT SAVED: ", scenarios, vehicles, branching, stations)
-
-
-if __name__ == '__main__':
-    # run_solution_time_analysis()
-    # Single run
-    start_hour = 7
-    no_stations = 246
-    branching = 3
-    scenarios = 3
-    simulation_time = 60  # Set this to value divisible by 60
-    stations = generate_all_stations(start_hour, no_stations)
-    stations[4].depot = True
-    veh1 = Vehicle(init_battery_load=30, init_charged_bikes=30, init_flat_bikes=0, current_station=stations[0], id=0)
-    veh2 = Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=stations[1], id=1)
-    veh3 = Vehicle(init_battery_load=30, init_charged_bikes=30, init_flat_bikes=0, current_station=stations[0], id=0)
-    veh4 = Vehicle(init_battery_load=10, init_charged_bikes=10, init_flat_bikes=10, current_station=stations[1], id=1)
-    env_base = Environment(start_hour, simulation_time, stations, list(), branching, scenarios)
-    stack_base = [copy.copy(trip) for trip in env_base.initial_stack]
-    reset_stations(stations, start_hour)
-    env3 = Environment(start_hour, simulation_time, stations, [veh3, veh4], branching, scenarios,
-                       trigger_start_stack=env_base.initial_stack, memory_mode=True,
-                       greedy=True)
-    reset_stations(stations, start_hour)
-    env = Environment(start_hour, simulation_time, stations, [veh1, veh2], branching, scenarios, trigger_start_stack=stack_base,
-                      memory_mode=True, greedy=False)
-    print("----- SIMULATION COMPARISON ---------")
-    print("Simulation time =", simulation_time, "minutes")
-    print("Total requested trips =", env.total_gen_trips)
-    print("Starvations base=", env_base.total_starvations)
-    print("Congestions base=", env_base.total_congestions)
-    print("Starvations greedy=", env3.total_starvations)
-    print("Congestions greedy=", env3.total_congestions)
-    print("Starvations heur=", env.total_starvations)
-    print("Congestions heur=", env.total_congestions)
