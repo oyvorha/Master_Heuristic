@@ -58,28 +58,15 @@ def weight_analysis():
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(3)]
-    print([len(sc) for sc in scenarios])
-
-    base_s = list()
-    base_c = list()
-
-    for w in all_sets:
-        w_base_s = list()
-        w_base_c = list()
-        for sc in scenarios:
-            init_base_stack = [copy.copy(trip) for trip in sc]
-            sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
-                                   trigger_start_stack=init_base_stack, memory_mode=True, weights=w)
-            sim_base.run_simulation()
-            w_base_s.append(sim_base.total_starvations)
-            w_base_c.append(sim_base.total_congestions)
-            reset_stations(stations)
-        base_s.append(w_base_s)
-        base_c.append(w_base_c)
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(5)]
 
     for i in range(len(all_sets)):
         for j in range(len(scenarios)):
+            reset_stations(stations)
+            init_base_stack = [copy.copy(trip) for trip in scenarios[j]]
+            sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
+                                   trigger_start_stack=init_base_stack, memory_mode=True, weights=all_sets[i])
+            sim_base.run_simulation()
             reset_stations(stations)
             init_stack = [copy.copy(trip) for trip in scenarios[j]]
             v = Vehicle(init_battery_load=20, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
@@ -87,7 +74,7 @@ def weight_analysis():
             sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios,
                                   trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
             sim_env.run_simulation()
-            save_weight_output(i+1, j+1, sim_env, base_s[i][j], base_c[i][j])
+            save_weight_output(i+1, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions)
 
 
 def strategy_analysis():
@@ -102,6 +89,7 @@ def strategy_analysis():
 
     scenario = 1
     for sc in scenarios:
+        reset_stations(stations)
         init_base_stack = [copy.copy(trip) for trip in sc]
         sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
                                trigger_start_stack=init_base_stack, memory_mode=True)
@@ -119,7 +107,6 @@ def strategy_analysis():
         sim_heur = Environment(start_hour, simulation_time, stations, vehicles_heur, branching,
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True)
         sim_heur.run_simulation()
-        reset_stations(stations)
         save_comparison_output(scenario, sim_heur, sim_base.total_starvations, sim_base.total_congestions,
                                sim_greedy.total_starvations, sim_greedy.total_congestions)
         scenario += 1
