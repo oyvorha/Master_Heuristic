@@ -50,7 +50,6 @@ def get_weight_combination_reduced():
             W_D = 1 - W_R - W_V
             weights.append((W_V, W_R, W_D, W_VN, W_VL))
     w = list(set(tuple(val) for val in weights))
-    print(len(w), w)
     return w
 
 
