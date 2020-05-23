@@ -24,8 +24,8 @@ def generate_all_stations(init_hour, n):
             else:
                 st.battery_rate = 0.95
             st.ideal_state = st.station_cap // 2
-            st.current_charged_bikes = min(st.station_cap, round(st.battery_rate * st.actual_num_bikes[init_hour], 0))
-            st.current_flat_bikes = min(st.station_cap - st.current_charged_bikes, round((1 - st.battery_rate) * st.actual_num_bikes[init_hour], 0))
+            st.current_charged_bikes = min(st.station_cap, st.actual_num_bikes[init_hour])
+            st.current_flat_bikes = 0
             st.init_charged = st.current_charged_bikes
             st.init_flat = st.current_flat_bikes
     subset = stations_uip[:n]

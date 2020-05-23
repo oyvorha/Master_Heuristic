@@ -37,8 +37,8 @@ def run_model(parameters):
         O = parameters.O
 
         W_V = parameters.W_V
-        W_VN = parameters.W_VN
-        W_VL = parameters.W_VL
+        W_N = parameters.W_N
+        W_L = parameters.W_L
         W_R = parameters.W_R
         W_D = parameters.W_D
 
@@ -111,18 +111,19 @@ def run_model(parameters):
 
         # Deviation
         m.addConstrs(
-            s_C[k] >= L_CS[k] + q_CCL[k] - q_CCL[k] + q_B[k] + I_IC[k] - I_OC[k]
+            s_C[k] >= L_CS[k] + q_CCU[k] - q_CCL[k] + q_B[k] + I_IC[k] - I_OC[k]
             + (1 / 2)*(v_S_ceiling[k] + v_S_floor[k] - v_C_ceiling[k] - v_C_floor[k]) for k in Stations[1:])
         m.addConstrs(
-            s_C[k] <= L_CS[k] + q_CCL[k] - q_CCL[k] + q_B[k] + I_IC[k] - I_OC[k]
+            s_C[k] <= L_CS[k] + q_CCU[k] - q_CCL[k] + q_B[k] + I_IC[k] - I_OC[k]
             + (1 / 2) * (v_S_ceiling[k] + v_S_floor[k] - v_C_ceiling[k] - v_C_floor[k]) for k in Stations[1:])
         m.addConstrs(d[k] >= O[k] - s_C[k] for k in Stations[1:])
         m.addConstrs(d[k] >= s_C[k] - O[k] for k in Stations[1:])
 
         # ------ OBJECTIVE -----------------------------------------------------------------------
-        m.setObjective(W_V * (W_VN * (-V_O + V_B[0]) + W_VL * quicksum(V_B[k] - 1/2 * (
+        m.setObjective(W_V * (W_N * (-V_O + V_B[0]) + W_L * quicksum(V_B[k] - 1/2 * (
                 v_S_floor[k] + v_S_ceiling[k] + v_C_floor[k] + v_C_ceiling[k]) for k in Stations[1:-1])) + W_R * (
-                               R_O + r_F) + W_D * (-D_O + D_B[0] + quicksum(D_B[k] - d[k] for k in Stations[1:-1])), GRB.MAXIMIZE)
+                W_N * R_O + W_L * r_F) + W_D * (W_N * (-D_O + D_B[0]) + W_L * quicksum(D_B[k] - d[k] for k in
+                                                                                       Stations[1:-1])), GRB.MAXIMIZE)
 
         m.optimize()
 

@@ -74,8 +74,6 @@ def setup_stations_students(client):
             if st2.id not in st1.station_car_travel_time.keys():
                 st1.station_car_travel_time[st2.id] = 20
                 count += 1
-    print("Missing", count)
-    print("# Stations", len(stations))
     return stations
 
 
