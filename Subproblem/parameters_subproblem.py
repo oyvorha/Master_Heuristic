@@ -55,7 +55,7 @@ class ParameterSub:
             self.R_O = max(0, self.Q_FCU - self.Q_FCL)
 
         # Weights
-        self.W_V, self.W_R, self.W_D, self.W_VN, self.W_VL = weights
+        self.W_V, self.W_R, self.W_D, self.W_N, self.W_L = weights
 
         # self.print_all_params(pattern)
 
