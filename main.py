@@ -88,7 +88,6 @@ def weight_analysis():
                                   trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
             sim_env.run_simulation()
             save_weight_output(i+1, j+1, sim_env, base_s[i][j], base_c[i][j])
-            reset_stations(stations)
 
 
 def strategy_analysis():
