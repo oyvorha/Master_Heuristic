@@ -7,8 +7,8 @@ import copy
 
 start_hour = 7
 no_stations = 200
-branching = 3
-subproblem_scenarios = 3
+branching = 5
+subproblem_scenarios = 10
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
@@ -37,18 +37,19 @@ def get_weight_combination():
 def get_weight_combination_reduced():
     # W_V, W_R, W_D, W_VN, W_VL
     weights = list()
-    vals = [0, 0.25, 0.5, 0.75, 1]
-    W_VN = 0.75
-    W_VL = 0.25
+    vals = [0.25, 0.30, 0.35, 0.40, 0.45, 0.5, 0.55, 0.60, 0.65, 0.75]
     for val1 in vals:
         W_V = val1
         for val2 in vals:
             if W_V + val2 <= 1:
-                W_R = val2
+                W_D = val2
             else:
-                W_R = 0
-            W_D = 1 - W_R - W_V
-            weights.append((W_V, W_R, W_D, W_VN, W_VL))
+                W_D = 0
+            W_R = 1 - W_D - W_V
+            for val3 in vals:
+                W_VN = val3
+                W_VL = 1 - W_VN
+                weights.append((W_V, W_R, W_D, W_VN, W_VL))
     w = list(set(tuple(val) for val in weights))
     return w
 
@@ -58,7 +59,7 @@ def weight_analysis():
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(5)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(10)]
 
     for i in range(len(all_sets)):
         for j in range(len(scenarios)):
@@ -69,7 +70,7 @@ def weight_analysis():
             sim_base.run_simulation()
             reset_stations(stations)
             init_stack = [copy.copy(trip) for trip in scenarios[j]]
-            v = Vehicle(init_battery_load=20, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
+            v = Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
                           id=0)
             sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios,
                                   trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
@@ -79,13 +80,13 @@ def weight_analysis():
 
 def strategy_analysis():
     vehicles = list()
-    for i in range(3):
+    for i in range(1):
         vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0,
                                 current_station=stations[i], id=i))
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(2)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(5)]
 
     scenario = 1
     for sc in scenarios:
