@@ -54,7 +54,7 @@ def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_
                                'Heuristic congestions'])
 
     new_row = {'Scenario': scenario, 'Total_requests': sim_heur.total_gen_trips, 'Base starvations': base_s,
-               'Base congestions': base_c, 'Greedy starvations': greedy_s, 'Greedy congestions': greedy_s,
+               'Base congestions': base_c, 'Greedy starvations': greedy_s, 'Greedy congestions': greedy_c,
                'Heuristic starvations': sim_heur.total_starvations, 'Heuristic congestions': sim_heur.total_congestions}
 
     weight_df = df.append(new_row, ignore_index=True)

@@ -18,7 +18,7 @@ def generate_all_stations(init_hour, n):
     print("UIP DB objects collected")
 
     for st in stations_uip:
-            if int(st.id) % 5 == 0:
+            if int(st.id) % 10 == 0:
                 st.battery_rate = 1
                 st.charging_station = True
             else:

@@ -46,7 +46,7 @@ class GenerateRoutePattern:
     w_dev = 0.2
     w_viol = 0.5
 
-    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, simple_candidate=False, dynamic=False):
+    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, simple_candidate=False, dynamic=True):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
