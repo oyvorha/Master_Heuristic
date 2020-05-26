@@ -37,21 +37,20 @@ def get_weight_combination():
 def get_weight_combination_reduced():
     # W_V, W_R, W_D, W_VN, W_VL
     weights = list()
-    vals = [0.25, 0.30, 0.35, 0.40, 0.45, 0.5, 0.55, 0.60, 0.65, 0.75]
+    vals = [0.3, 0.4, 0.5, 0.6, 0.7]
     for val1 in vals:
         W_V = val1
         for val2 in vals:
             if W_V + val2 <= 1:
                 W_D = val2
             else:
-                W_D = 0
+                break
             W_R = 1 - W_D - W_V
             for val3 in vals:
                 W_VN = val3
                 W_VL = 1 - W_VN
                 weights.append((W_V, W_R, W_D, W_VN, W_VL))
-    w = list(set(tuple(val) for val in weights))
-    return w
+    return weights
 
 
 def weight_analysis(a, b, choice):
