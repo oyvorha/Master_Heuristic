@@ -54,8 +54,8 @@ def get_weight_combination_reduced():
     return w
 
 
-def weight_analysis():
-    all_sets = get_weight_combination_reduced()
+def weight_analysis(a, b, choice):
+    all_sets = get_weight_combination_reduced()[a:b]
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
@@ -75,7 +75,7 @@ def weight_analysis():
             sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios,
                                   trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
             sim_env.run_simulation()
-            save_weight_output(i+1, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions)
+            save_weight_output(i+1+a, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions, choice)
 
 
 def strategy_analysis():
@@ -116,8 +116,16 @@ def strategy_analysis():
 if __name__ == '__main__':
     print("w: weight analysis, c: strategy comparison, r: runtime analysis")
     choice = input('Choose action: ')
-    if choice == 'w':
-        weight_analysis()
+    if choice == 'w1':
+        weight_analysis(0, 15, choice)
+    elif choice == 'w2':
+        weight_analysis(15, 30, choice)
+    elif choice == 'w3':
+        weight_analysis(30, 45, choice)
+    elif choice == 'w4':
+        weight_analysis(45, 60, choice)
+    elif choice == 'w5':
+        weight_analysis(60, 75, choice)
     elif choice == 'c':
         strategy_analysis()
     else:
