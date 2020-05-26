@@ -16,6 +16,7 @@ def generate_all_stations(init_hour, n):
     # valid_date = "2019-10-10"
     stations_uip = setup_stations_students(client)
     print("UIP DB objects collected")
+    demand_met = 0.5
 
     for st in stations_uip:
             if int(st.id) % 10 == 0:
@@ -43,7 +44,7 @@ def generate_all_stations(init_hour, n):
         for hour in range(24):
             incoming = 0
             for stat in subset:
-                incoming += stat.demand_per_hour[hour] * stat.next_station_probabilities[st2.id]
+                incoming += stat.demand_per_hour[hour] * demand_met * stat.next_station_probabilities[st2.id]
             st2.incoming_charged_bike_rate[hour] = incoming * st2.battery_rate
             st2.incoming_flat_bike_rate[hour] = incoming * (1-st2.battery_rate)
     return subset
