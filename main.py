@@ -3,6 +3,8 @@ from vehicle import Vehicle
 from Output.save_to_excel import save_weight_output, save_comparison_output
 from Simulation.BSS_environment import Environment
 import copy
+import pandas as pd
+from openpyxl import load_workbook
 
 
 start_hour = 7
@@ -60,6 +62,11 @@ def weight_analysis(a, b, choice):
     # Generating 10 scenarios
     scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(10)]
 
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/output_weights_" + choice + ".xlsx", engine='openpyxl')
+    book = load_workbook("Output/output_weights_" + choice + ".xlsx")
+    writer.book = book
+
     for i in range(len(all_sets)):
         for j in range(len(scenarios)):
             reset_stations(stations)
@@ -74,7 +81,7 @@ def weight_analysis(a, b, choice):
             sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios,
                                   trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
             sim_env.run_simulation()
-            save_weight_output(i+1+a, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions, choice)
+            save_weight_output(i+1+a, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions, writer)
 
 
 def strategy_analysis():
