@@ -1,6 +1,7 @@
 import random
 from Simulation.heuristic_manager import HeuristicManager
 import time
+from Output.save_to_excel import save_first_step_solution
 
 
 class Event:

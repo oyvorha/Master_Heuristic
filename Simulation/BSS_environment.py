@@ -11,7 +11,7 @@ class Environment:
     charged_rate = 0.95
 
     def __init__(self, start_hour, simulation_time, stations, vehicles, init_branching, scenarios, memory_mode=False,
-                 trigger_start_stack=list(), greedy=False, weights=(0.5, 0.1, 0.4, 0.75, 0.25)):
+                 trigger_start_stack=list(), greedy=False, weights=(0.5, 0.1, 0.4, 0.75, 0.25), writer=None):
         self.stations = stations
         self.vehicles = vehicles
         self.current_time = start_hour * 60
@@ -24,6 +24,7 @@ class Environment:
         self.greedy = greedy
         self.weights = weights
         self.event_times = list()
+        self.writer = writer
 
         self.memory_mode = memory_mode
         self.initial_stack = None
@@ -40,6 +41,7 @@ class Environment:
     def run_simulation(self):
         while self.current_time < self.simulation_stop:
             self.event_trigger()
+            break
         self.end_simulation()
 
     def set_up_system(self):
