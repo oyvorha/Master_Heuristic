@@ -10,10 +10,10 @@ from openpyxl import load_workbook
 start_hour = 7
 no_stations = 200
 branching = 5
-subproblem_scenarios = 10
-simulation_time = 960 # 7 am to 11 pm
-# stations = generate_all_stations(start_hour, no_stations)
-# stations[4].depot = True
+subproblem_scenarios = 5
+simulation_time = 960  # 7 am to 11 pm
+stations = generate_all_stations(start_hour, no_stations)
+stations[4].depot = True
 
 
 def get_weight_combination():
@@ -40,6 +40,7 @@ def get_weight_combination_reduced():
     # W_V, W_R, W_D, W_VN, W_VL
     weights = list()
     vals = [0.3, 0.4, 0.5, 0.6, 0.7]
+    vals_nl = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
     for val1 in vals:
         W_V = val1
         for val2 in vals:
@@ -48,7 +49,7 @@ def get_weight_combination_reduced():
             else:
                 break
             W_R = 1 - W_D - W_V
-            for val3 in vals:
+            for val3 in vals_nl:
                 W_VN = val3
                 W_VL = 1 - W_VN
                 weights.append((W_V, W_R, W_D, W_VN, W_VL))
@@ -165,6 +166,8 @@ if __name__ == '__main__':
         weight_analysis(45, 60, choice)
     elif choice == 'w5':
         weight_analysis(60, 75, choice)
+    elif choice == 'w6':
+        weight_analysis(75, 105, choice)
     elif choice == 'c':
         strategy_analysis()
     elif choice == 'fs':
