@@ -35,7 +35,6 @@ def save_weight_output(set_id, scenario, env, base_s, base_c, writer):
 
     weight_df = df.append(new_row, ignore_index=True)
 
-    print(writer.book.sheetnames)
     if 'Weight_simulation' in writer.book.sheetnames:
         start_row = writer.sheets['Weight_simulation'].max_row
         weight_df.to_excel(writer, startrow=start_row, index=False, header=False, sheet_name='Weight_simulation')

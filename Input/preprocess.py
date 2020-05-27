@@ -50,6 +50,39 @@ def generate_all_stations(init_hour, n):
     return subset
 
 
+def generate_pattern_stations(n):
+    client = bq.Client('uip-students')
+    # valid_date = "2019-10-10"
+    stations_uip = setup_stations_students(client)
+    print("UIP DB objects collected")
+    demand_met = 0.5
+
+    for st in stations_uip:
+            st.battery_rate = 0.5
+            st.ideal_state = st.station_cap // 2
+            st.current_charged_bikes = 1
+            st.current_flat_bikes = 1
+    subset = stations_uip[:n]
+    subset_ids = [s.id for s in subset]
+    for st1 in subset:
+        subset_prob = 0
+        for st_id, prob in st1.next_station_probabilities.items():
+            if st_id in subset_ids:
+                subset_prob += prob
+        for hour in range(24):
+            st1.demand_per_hour[hour] *= subset_prob
+        for s_id in subset_ids:
+            st1.next_station_probabilities[s_id] /= subset_prob
+    for st2 in subset:
+        for hour in range(24):
+            incoming = 0
+            for stat in subset:
+                incoming += stat.demand_per_hour[hour] * demand_met * stat.next_station_probabilities[st2.id]
+            st2.incoming_charged_bike_rate[hour] = incoming * st2.battery_rate
+            st2.incoming_flat_bike_rate[hour] = incoming * (1-st2.battery_rate)
+    return subset
+
+
 def reset_stations(stations):
 
     for station in stations:

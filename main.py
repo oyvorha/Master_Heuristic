@@ -1,6 +1,6 @@
-from Input.preprocess import generate_all_stations, reset_stations
+from Input.preprocess import generate_all_stations, reset_stations, generate_pattern_stations
 from vehicle import Vehicle
-from Output.save_to_excel import save_weight_output, save_comparison_output
+from Output.save_to_excel import save_weight_output, save_comparison_output, save_time_output
 from Simulation.BSS_environment import Environment
 import copy
 import pandas as pd
@@ -119,6 +119,39 @@ def strategy_analysis():
         scenario += 1
 
 
+def first_step():
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/first_step.xlsx", engine='openpyxl')
+    book = load_workbook("Output/first_step.xlsx")
+    writer.book = book
+    v = Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
+                id=0)
+    sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios, writer=writer)
+    sim_env.run_simulation()
+
+
+def runtime_analysis():
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/runtime.xlsx", engine='openpyxl')
+    book = load_workbook("Output/runtime.xlsx")
+    writer.book = book
+    stations = generate_pattern_stations(200)
+    stations[4].depot = True
+    for sub_sc in [1, 10, 20, 30]:
+        for no_vehicles in [1, 2, 3, 4, 5]:
+                vehicles = list()
+                for i in range(no_vehicles):
+                    vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=5, init_flat_bikes=5,
+                                            current_station=stations[i], id=i))
+                for no_stations in [20, 50, 100, 150, 200]:
+                    sta = stations[:no_stations]
+                    sim_env = Environment(start_hour, simulation_time, sta, vehicles, branching, sub_sc,
+                                          memory_mode=True, writer=writer)
+                    sim_env.run_simulation()
+                    time = sim_env.event_times[0]
+                    save_time_output(no_stations, branching, sub_sc, no_vehicles, time, writer)
+
+
 if __name__ == '__main__':
     print("w: weight analysis, c: strategy comparison, r: runtime analysis")
     choice = input('Choose action: ')
@@ -134,5 +167,9 @@ if __name__ == '__main__':
         weight_analysis(60, 75, choice)
     elif choice == 'c':
         strategy_analysis()
+    elif choice == 'fs':
+        first_step()
+    elif choice == 'r':
+        runtime_analysis()
     else:
         print("No analysis")
