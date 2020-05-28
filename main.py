@@ -40,19 +40,14 @@ def get_weight_combination_reduced():
     # W_V, W_R, W_D, W_VN, W_VL
     weights = list()
     vals = [0.3, 0.4, 0.5, 0.6, 0.7]
-    vals_nl = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
-    for val1 in vals:
-        W_V = val1
-        for val2 in vals:
-            if W_V + val2 <= 1:
-                W_D = val2
-            else:
-                break
-            W_R = 1 - W_D - W_V
-            for val3 in vals_nl:
-                W_VN = val3
-                W_VL = 1 - W_VN
-                weights.append((W_V, W_R, W_D, W_VN, W_VL))
+    W_D = 0.2
+    W_VN = 0.4
+    W_VL = 0.6
+    for val2 in vals:
+        W_V = val2
+        W_R = 1 - W_D - W_V
+        weights.append((W_V, W_R, W_D, W_VN, W_VL))
+    print(len(weights))
     return weights
 
 
@@ -61,7 +56,7 @@ def weight_analysis(a, b, choice):
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(10)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(20)]
 
     # Create excel writer
     writer = pd.ExcelWriter("Output/output_weights_" + choice + ".xlsx", engine='openpyxl')
@@ -157,11 +152,11 @@ if __name__ == '__main__':
     print("w: weight analysis, c: strategy comparison, r: runtime analysis")
     choice = input('Choose action: ')
     if choice == 'w1':
-        weight_analysis(0, 15, choice)
+        weight_analysis(0, 2, choice)
     elif choice == 'w2':
-        weight_analysis(15, 30, choice)
+        weight_analysis(2, 4, choice)
     elif choice == 'w3':
-        weight_analysis(30, 45, choice)
+        weight_analysis(4, 5, choice)
     elif choice == 'w4':
         weight_analysis(45, 60, choice)
     elif choice == 'w5':
