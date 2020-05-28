@@ -134,3 +134,6 @@ class Station:
 
     def get_station_car_travel_time(self, end_st_id, json_times=True):
         return self.station_car_travel_time[end_st_id]
+
+    def get_ideal_state(self, hour):
+        return self.ideal_state[str(hour)]

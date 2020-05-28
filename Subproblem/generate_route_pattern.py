@@ -4,7 +4,7 @@ import json
 
 class Route:
 
-    def __init__(self, starting_st, vehicle, time_hor=25):
+    def __init__(self, starting_st, vehicle, hour, time_hor=25):
         self.starting_station = starting_st
         self.stations = [starting_st]
         self.length = 0
@@ -13,6 +13,7 @@ class Route:
         self.time_horizon = time_hor
         self.vehicle = vehicle
         self.handling_time = 0.5
+        self.hour = hour
 
     def add_station(self, station, added_station_time):
         self.stations.append(station)
@@ -25,9 +26,9 @@ class Route:
             if policy == 'greedy':
                 # Make ideal state artificially lower for increased flexibility --> Temporarily set to 3
                 bat_load = max(0, min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity(),
-                                      self.starting_station.current_charged_bikes - self.starting_station.ideal_state - 3))
+                                      self.starting_station.current_charged_bikes - self.starting_station.get_ideal_state(self.hour) - 3))
                 bat_unload = max(0, min(self.vehicle.current_charged_bikes, self.starting_station.available_parking(),
-                                 self.starting_station.ideal_state - self.starting_station.current_charged_bikes))
+                                 self.starting_station.get_ideal_state(self.hour) - self.starting_station.current_charged_bikes))
                 flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_bike_capacity())
                 flat_unload = min(self.vehicle.current_flat_bikes, self.starting_station.available_parking())
                 swap = min(self.vehicle.current_batteries,
@@ -60,7 +61,7 @@ class GenerateRoutePattern:
 
     def get_columns(self):
         finished_routes = list()
-        construction_routes = [Route(self.starting_station, self.vehicle)]
+        construction_routes = [Route(self.starting_station, self.vehicle, self.hour)]
         while construction_routes:
             for col in construction_routes:
                 if col.length < (self.time_horizon - GenerateRoutePattern.flexibility):

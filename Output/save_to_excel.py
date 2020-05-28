@@ -89,3 +89,21 @@ def save_first_step_solution(instance, scenarios, batteries, net_charged, net_fl
     else:
         weight_df.to_excel(writer, index=False, sheet_name='First_solution')
         writer.save()
+
+
+def criticality_weights(instance, weight_set, w_drive, w_dev, w_viol, w_flat, writer):
+    df = pd.DataFrame(columns=['Instance', 'weight_set', 'w_drive', 'w_dev', 'w_viol',
+                               'w_flat'])
+
+    new_row = {'Instance': instance, 'weight_set': weight_set, 'w_drive': w_drive, 'w_dev': w_dev,
+               'w_viol': w_viol, 'w_flat': w_flat}
+
+    weight_df = df.append(new_row, ignore_index=True)
+
+    if 'Weight_criticality' in writer.book.sheetnames:
+        start_row = writer.sheets['Weight_criticality'].max_row
+        weight_df.to_excel(writer, startrow=start_row, index=False, header=False, sheet_name='Weight_criticality')
+        writer.save()
+    else:
+        weight_df.to_excel(writer, index=False, sheet_name='Weight_criticality')
+        writer.save()

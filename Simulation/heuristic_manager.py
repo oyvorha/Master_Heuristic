@@ -33,7 +33,7 @@ class HeuristicManager:
                                    self.hour, init_branching=self.init_branching, criticality=self.criticality)
         gen.get_columns()
         self.route_patterns.append(gen)
-        model_man = ModelManager(vehicle)
+        model_man = ModelManager(vehicle, self.hour)
         route_scores = list()
         for route in gen.finished_gen_routes:
             route_full_set_index = [get_index(st.id, self.station_set) for st in route.stations]
@@ -87,6 +87,7 @@ class HeuristicManager:
                 c3_times = HeuristicManager.poisson_simulation(station.get_outgoing_customer_rate(self.hour) / 60, HeuristicManager.time_h)
                 scenario.append([c1_times, c2_times, c3_times])
             self.customer_arrival_scenarios.append(scenario)
+
 
     @staticmethod
     def poisson_simulation(intensity_rate, time_steps):
