@@ -110,6 +110,7 @@ def strategy_analysis():
                                  greedy=True)
         sim_greedy.run_simulation()
 
+        reset_stations(stations)
         init_crit_stack = [copy.copy(trip) for trip in sc]
         vehicles_crit = [copy.copy(veh) for veh in vehicles]
         sim_crit = Environment(start_hour, simulation_time, stations, vehicles_crit, branching,
