@@ -10,7 +10,8 @@ class HeuristicManager:
 
     time_h = 25
 
-    def __init__(self, vehicles, station_full_set, hour, no_scenarios=1, init_branching=7, weights=None):
+    def __init__(self, vehicles, station_full_set, hour, no_scenarios=1, init_branching=7, weights=None,
+                 criticality=True):
         self.no_scenarios = no_scenarios
         self.customer_arrival_scenarios = list()
         self.vehicles = vehicles
@@ -21,6 +22,7 @@ class HeuristicManager:
         self.init_branching = init_branching
         self.hour = hour
         self.weights = weights
+        self.criticality = criticality
 
         self.generate_scenarios()
         self.run_subproblems()
@@ -28,7 +30,7 @@ class HeuristicManager:
 
     def run_vehicle_subproblems(self, vehicle):
         gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle,
-                                   self.hour, init_branching=self.init_branching)
+                                   self.hour, init_branching=self.init_branching, criticality=self.criticality)
         gen.get_columns()
         self.route_patterns.append(gen)
         model_man = ModelManager(vehicle)

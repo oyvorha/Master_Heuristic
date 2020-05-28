@@ -81,6 +81,11 @@ def weight_analysis(a, b, choice):
 
 
 def strategy_analysis():
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/first_step.xlsx", engine='openpyxl')
+    book = load_workbook("Output/first_step.xlsx")
+    writer.book = book
+
     vehicles = list()
     for i in range(1):
         vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0,
@@ -88,7 +93,7 @@ def strategy_analysis():
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(5)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(50)]
 
     scenario = 1
     for sc in scenarios:
@@ -104,6 +109,14 @@ def strategy_analysis():
                                  subproblem_scenarios, trigger_start_stack=init_greedy_stack, memory_mode=True,
                                  greedy=True)
         sim_greedy.run_simulation()
+
+        init_crit_stack = [copy.copy(trip) for trip in sc]
+        vehicles_crit = [copy.copy(veh) for veh in vehicles]
+        sim_crit = Environment(start_hour, simulation_time, stations, vehicles_crit, branching,
+                               subproblem_scenarios, trigger_start_stack=init_crit_stack, memory_mode=True,
+                               criticality=False)
+        sim_crit.run_simulation()
+
         reset_stations(stations)
         init_heur_stack = [copy.copy(trip) for trip in sc]
         vehicles_heur = [copy.copy(veh) for veh in vehicles]
@@ -111,7 +124,8 @@ def strategy_analysis():
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True)
         sim_heur.run_simulation()
         save_comparison_output(scenario, sim_heur, sim_base.total_starvations, sim_base.total_congestions,
-                               sim_greedy.total_starvations, sim_greedy.total_congestions)
+                               sim_greedy.total_starvations, sim_greedy.total_congestions, writer,
+                               crit_off_s=sim_crit.total_starvations, crit_off_c=sim_crit.total_congestions)
         scenario += 1
 
 

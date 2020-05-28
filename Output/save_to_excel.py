@@ -44,7 +44,8 @@ def save_weight_output(set_id, scenario, env, base_s, base_c, writer):
         writer.save()
 
 
-def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_c, writer):
+def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_c, writer, crit_off_s=None,
+                           crit_off_c=None):
     """
     book_c = load_workbook("Output/output_compare.xlsx")
     writer_c = pd.ExcelWriter("Output/output_compare.xlsx", engine='openpyxl')
@@ -53,11 +54,12 @@ def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_
 
     df = pd.DataFrame(columns=['Scenario', 'Total_requests', 'Base starvations', 'Base congestions',
                                'Greedy starvations', 'Greedy congestions', 'Heuristic starvations',
-                               'Heuristic congestions'])
+                               'Heuristic congestions', 'Criticality off starvations', 'Criticality off congestions'])
 
     new_row = {'Scenario': scenario, 'Total_requests': sim_heur.total_gen_trips, 'Base starvations': base_s,
                'Base congestions': base_c, 'Greedy starvations': greedy_s, 'Greedy congestions': greedy_c,
-               'Heuristic starvations': sim_heur.total_starvations, 'Heuristic congestions': sim_heur.total_congestions}
+               'Heuristic starvations': sim_heur.total_starvations, 'Heuristic congestions': sim_heur.total_congestions,
+               'Criticality off starvations': crit_off_s, 'Criticality off congestions': crit_off_c}
 
     weight_df = df.append(new_row, ignore_index=True)
 

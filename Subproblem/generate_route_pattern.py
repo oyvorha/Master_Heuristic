@@ -46,7 +46,7 @@ class GenerateRoutePattern:
     w_dev = 0.2
     w_viol = 0.5
 
-    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, simple_candidate=False, dynamic=True):
+    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=True):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
@@ -55,7 +55,7 @@ class GenerateRoutePattern:
         self.all_stations = stations
         self.init_branching = init_branching
         self.hour = hour
-        self.simple_candidate = simple_candidate
+        self.criticality = criticality
         self.dynamic = dynamic
 
     def get_columns(self):
@@ -65,7 +65,7 @@ class GenerateRoutePattern:
             for col in construction_routes:
                 if col.length < (self.time_horizon - GenerateRoutePattern.flexibility):
 
-                    if self.simple_candidate:
+                    if not self.criticality:
                         cand_scores = col.starting_station.get_candidate_stations(
                             self.all_stations, tabu_list=[c.id for c in col.stations], max_candidates=9)
                     # candidates = all stations
