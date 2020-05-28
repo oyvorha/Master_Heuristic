@@ -28,12 +28,14 @@ def generate_all_stations(init_hour, n):
             else:
                 st.battery_rate = 0.95
             if st.id in ideal_state_json.keys():
-                st.ideal_state = ideal_state_json[st.id]
+                ideal = {int(k): int(v) for k, v in ideal_state_json[st.id].items()}
+                st.ideal_state = ideal
             else:
                 ideal = {}
                 for hour in range(0, 24):
-                    ideal[str(hour)] = st.station_cap // 2
+                    ideal[hour] = st.station_cap // 2
                 st.ideal_state = ideal
+
             st.current_charged_bikes = min(st.station_cap, st.actual_num_bikes[init_hour])
             st.current_flat_bikes = 0
             st.init_charged = st.current_charged_bikes
