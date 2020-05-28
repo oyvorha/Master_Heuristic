@@ -87,7 +87,7 @@ def strategy_analysis():
     writer.book = book
 
     vehicles = list()
-    for i in range(5):
+    for i in range(2):
         vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0,
                                 current_station=stations[i], id=i))
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
