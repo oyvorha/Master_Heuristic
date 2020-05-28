@@ -45,9 +45,10 @@ class GenerateRoutePattern:
     # Criticality weights
     w_drive = 0.3
     w_dev = 0.2
-    w_viol = 0.5
+    w_viol = 0.4
+    w_flat = 0.1
 
-    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=True):
+    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=False):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
@@ -77,10 +78,13 @@ class GenerateRoutePattern:
                         # Calculate criticality score for all stations
                         for st in candidates:
                             if st not in col.stations:
+                                first = False
+                                if len(col.stations) == 1:
+                                    first = True
                                 driving_time = col.stations[-1].get_station_car_travel_time(st.id)
                                 score = st.get_criticality_score(self.vehicle, self.time_horizon, self.hour,
                                                                  driving_time, self.w_viol,
-                                                                 self.w_drive, self.w_dev)
+                                                                 self.w_drive, self.w_dev, self.w_flat, first)
                                 cand_scores.append([st, driving_time, score])
 
                         # Sort candidates by criticality score
