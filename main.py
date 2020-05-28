@@ -82,8 +82,8 @@ def weight_analysis(a, b, choice):
 
 def strategy_analysis():
     # Create excel writer
-    writer = pd.ExcelWriter("Output/first_step.xlsx", engine='openpyxl')
-    book = load_workbook("Output/first_step.xlsx")
+    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
+    book = load_workbook("Output/output.xlsx")
     writer.book = book
 
     vehicles = list()
