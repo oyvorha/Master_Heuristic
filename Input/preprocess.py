@@ -16,7 +16,10 @@ def generate_all_stations(init_hour, n):
     # valid_date = "2019-10-10"
     stations_uip = setup_stations_students(client)
     print("UIP DB objects collected")
-    demand_met = 0.5
+    demand_met = 0.75
+
+    with open('Input/station.json', 'r') as f:
+        ideal_state_json = json.load(f)
 
     for st in stations_uip:
             if int(st.id) % 10 == 0:
@@ -24,7 +27,13 @@ def generate_all_stations(init_hour, n):
                 st.charging_station = True
             else:
                 st.battery_rate = 0.95
-            st.ideal_state = st.station_cap // 2
+            if st.id in ideal_state_json.keys():
+                st.ideal_state = ideal_state_json[st.id]
+            else:
+                ideal = {}
+                for hour in range(0, 24):
+                    ideal[str(hour)] = st.station_cap // 2
+                st.ideal_state = ideal
             st.current_charged_bikes = min(st.station_cap, st.actual_num_bikes[init_hour])
             st.current_flat_bikes = 0
             st.init_charged = st.current_charged_bikes
