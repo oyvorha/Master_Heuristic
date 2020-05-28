@@ -1,27 +1,19 @@
 import pandas as pd
 import json
 
-file = '~/stations.xlsx'
-sheet_name = 'Data'
-scenarios = ['A', 'B', 'C', 'D', 'E']
-length_time_interval = 120
-
-stations = {}
+file = '~/Documents/optimal_state.xlsx'
+sheet_name = 'Ark 1'
 
 
 def read_excel_and_set_rates():
     df_stations = pd.read_excel(file, sheet_name)
+    optimal_states = {}
     for index, row in df_stations.iterrows():
-        interval_scenarios = {}
-        for scenario in scenarios:
-            full_station_time = 0  # Temporary guess: Read from DB!!
-            init_load = round(float(row[scenario+'_start_load']), 0)
-            docker_rate = round(float(row[scenario + '_incoming'])/(
-                    length_time_interval - full_station_time), 3)
-            battery_user_rate = round(float(row[scenario + '_outgoing_rate']) / (
-                    length_time_interval - row[scenario+'_empty']), 3)
-            interval_scenarios[scenario] = [init_load, docker_rate, battery_user_rate]
-        stations[int(row['Station_ID'])] = [row['Latitude'], row['Longitude'], interval_scenarios]
+        if row['station_id'] in optimal_states.keys():
+            optimal_states[row['station_id']][int(row['hour_utc'])] = row['optimal_state']
+        else:
+            optimal_states[row['station_id']] = {int(row['hour_utc']): row['optimal_state']}
+    write_json(optimal_states)
 
 
 def write_json(json_element):
@@ -30,4 +22,3 @@ def write_json(json_element):
 
 
 read_excel_and_set_rates()
-write_json(stations)
