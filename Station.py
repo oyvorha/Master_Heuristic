@@ -95,7 +95,7 @@ class Station:
     def get_incoming_flat_rate(self, hour):
         return self.incoming_flat_bike_rate[hour]
 
-    def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev, w_flat,
+    def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev, w_net,
                               first_station):
         # ------- Time to violation -------
         if self.depot and vehicle.current_batteries < 2:
@@ -136,9 +136,10 @@ class Station:
         else:
             charged_at_t = self.current_charged_bikes
         dev = abs(self.get_ideal_state(hour) - charged_at_t)
-        return - w_viol * time_to_violation - w_drive * driving_time + w_dev * dev + w_flat * self.current_flat_bikes
+        net = abs(self.get_incoming_charged_rate(hour) - self.get_outgoing_customer_rate(hour))
+        return - w_viol * time_to_violation - w_drive * driving_time + w_dev * dev + w_net * net
 
-    def get_station_car_travel_time(self, end_st_id, json_times=True):
+    def get_station_car_travel_time(self, end_st_id):
         return self.station_car_travel_time[end_st_id]
 
     def get_ideal_state(self, hour):

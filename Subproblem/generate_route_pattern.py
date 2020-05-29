@@ -54,7 +54,7 @@ class GenerateRoutePattern:
         self.hour = hour
         self.criticality = criticality
         self.dynamic = dynamic
-        self.w_drive, self.w_dev, self.w_viol, self.w_flat = crit_weights
+        self.w_drive, self.w_dev, self.w_viol, self.w_net = crit_weights
 
     def get_columns(self):
         finished_routes = list()
@@ -80,7 +80,7 @@ class GenerateRoutePattern:
                                 driving_time = col.stations[-1].get_station_car_travel_time(st.id)
                                 score = st.get_criticality_score(self.vehicle, self.time_horizon, self.hour,
                                                                  driving_time, self.w_viol,
-                                                                 self.w_drive, self.w_dev, self.w_flat, first)
+                                                                 self.w_drive, self.w_dev, self.w_net, first)
                                 cand_scores.append([st, driving_time, score])
 
                         # Sort candidates by criticality score
