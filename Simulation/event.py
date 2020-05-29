@@ -76,7 +76,7 @@ class VehicleEvent(Event):
         start = time.time()
         heuristic_man = HeuristicManager(self.env.vehicles, self.env.stations, hour,
                                          no_scenarios=self.env.scenarios, init_branching=self.env.init_branching,
-                                         weights=self.env.weights)
+                                         weights=self.env.weights, writer=self.env.writer)
         self.event_time = time.time() - start
 
         # Index of vehicle that triggered event

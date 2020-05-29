@@ -91,12 +91,12 @@ def save_first_step_solution(instance, scenarios, batteries, net_charged, net_fl
         writer.save()
 
 
-def criticality_weights(instance, weight_set, w_drive, w_dev, w_viol, w_flat, writer):
+def criticality_weights(instance, weight_set, w_drive, w_dev, w_viol, w_flat, subscore, writer):
     df = pd.DataFrame(columns=['Instance', 'weight_set', 'w_drive', 'w_dev', 'w_viol',
-                               'w_flat'])
+                               'w_flat', 'subscore'])
 
     new_row = {'Instance': instance, 'weight_set': weight_set, 'w_drive': w_drive, 'w_dev': w_dev,
-               'w_viol': w_viol, 'w_flat': w_flat}
+               'w_viol': w_viol, 'w_flat': w_flat, 'subscore': subscore}
 
     weight_df = df.append(new_row, ignore_index=True)
 

@@ -135,7 +135,7 @@ def first_step():
     writer = pd.ExcelWriter("Output/first_step.xlsx", engine='openpyxl')
     book = load_workbook("Output/first_step.xlsx")
     writer.book = book
-    v = Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
+    v = Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0, current_station=stations[0],
                 id=0)
     sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios, writer=writer)
     sim_env.run_simulation()

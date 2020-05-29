@@ -42,13 +42,8 @@ class GenerateRoutePattern:
     flexibility = 3
     average_handling_time = 6
 
-    # Criticality weights
-    w_drive = 0.3
-    w_dev = 0.2
-    w_viol = 0.4
-    w_flat = 0.1
-
-    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=False):
+    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=False,
+                 crit_weights=(0.3, 0.2, 0.4, 0.1)):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
@@ -59,6 +54,7 @@ class GenerateRoutePattern:
         self.hour = hour
         self.criticality = criticality
         self.dynamic = dynamic
+        self.w_drive, self.w_dev, self.w_viol, self.w_flat = crit_weights
 
     def get_columns(self):
         finished_routes = list()

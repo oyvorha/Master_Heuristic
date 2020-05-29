@@ -2,7 +2,7 @@
 class Vehicle:
 
     def __init__(self, init_battery_load, init_charged_bikes, init_flat_bikes, current_station,
-                 bike_cap=40, bat_cap=20, id=0):
+                 bike_cap=20, bat_cap=40, id=0):
         self.id = id
         self.current_station = current_station
         self.current_batteries = init_battery_load

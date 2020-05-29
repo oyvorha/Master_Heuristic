@@ -4,6 +4,7 @@ from Subproblem.generate_route_pattern import GenerateRoutePattern
 import numpy as np
 from MasterProblem.master_params import MasterParameters
 from MasterProblem.master_model import run_master_model
+from Output.save_to_excel import criticality_weights
 
 
 class HeuristicManager:
@@ -11,7 +12,7 @@ class HeuristicManager:
     time_h = 25
 
     def __init__(self, vehicles, station_full_set, hour, no_scenarios=1, init_branching=7, weights=None,
-                 criticality=True):
+                 criticality=True, writer=None):
         self.no_scenarios = no_scenarios
         self.customer_arrival_scenarios = list()
         self.vehicles = vehicles
@@ -23,12 +24,37 @@ class HeuristicManager:
         self.hour = hour
         self.weights = weights
         self.criticality = criticality
+        self.writer = writer
 
         self.generate_scenarios()
         self.run_subproblems()
         self.run_master_problem()
 
     def run_vehicle_subproblems(self, vehicle):
+        crit_weights = HeuristicManager.get_criticality_weights()
+        id = np.random.randint(0, 15403)
+        for i in range(len(crit_weights)):
+            gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle,
+                                       self.hour, init_branching=self.init_branching, criticality=self.criticality,
+                                       crit_weights=crit_weights[i])
+            gen.get_columns()
+            model_man = ModelManager(vehicle, self.hour)
+            route_scores = list()
+            for route in gen.finished_gen_routes:
+                route_full_set_index = [get_index(st.id, self.station_set) for st in route.stations]
+                pattern_scores = list()
+                for pattern in gen.patterns:
+                    scenario_scores = list()
+                    for customer_scenario in self.customer_arrival_scenarios:
+                        score = model_man.run_one_subproblem(route, route_full_set_index, pattern, customer_scenario,
+                                                             self.weights)
+                        scenario_scores.append(score)
+                    pattern_scores.append(np.average(scenario_scores))
+                route_scores.append(np.average(pattern_scores))
+            average_subscore = np.average(route_scores)
+            criticality_weights(id, i, crit_weights[i][0], crit_weights[i][1], crit_weights[i][2],
+                                crit_weights[i][3], average_subscore, self.writer)
+
         gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle,
                                    self.hour, init_branching=self.init_branching, criticality=self.criticality)
         gen.get_columns()
@@ -97,3 +123,24 @@ class HeuristicManager:
             for i in range(arrival):
                 times.append(t)
         return times
+
+    @staticmethod
+    def get_criticality_weights():
+        # w_drive, w_dev, w_viol, w_flat
+        vals = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+        weights = list()
+        for val1 in vals:
+            w_drive = val1
+            for val2 in vals:
+                if w_drive + val2 <= 1:
+                    w_dev = val2
+                else:
+                    break
+                for val3 in vals:
+                    if w_drive + w_dev + val3 <= 1:
+                        w_viol = val3
+                    else:
+                        break
+                    w_flat = 1 - w_drive - w_dev - w_viol
+                    weights.append((w_drive, w_dev, w_viol, w_flat))
+        return weights
