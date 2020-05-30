@@ -15,7 +15,7 @@ def generate_all_stations(init_hour, n):
     # valid_date = "2019-10-10"
     stations_uip = setup_stations_students(client)
     print("UIP DB objects collected")
-    demand_met = 0.5
+    demand_met = 0.75
 
     with open('Input/station.json', 'r') as f:
         ideal_state_json = json.load(f)
