@@ -74,10 +74,10 @@ def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_
 
 def save_first_step_solution(instance, scenarios, batteries, net_charged, net_flat, next_station, writer):
 
-    df = pd.DataFrame(columns=['Instance', '#Scenarios', 'Next station', '#Batteries', 'Net charged load',
+    df = pd.DataFrame(columns=['Instance', 'Branching', 'Next station', '#Batteries', 'Net charged load',
                                'Net flat load'])
 
-    new_row = {'Instance': instance, '#Scenarios': scenarios, 'Next station': next_station.id, '#Batteries': batteries,
+    new_row = {'Instance': instance, 'Branching': scenarios, 'Next station': next_station.id, '#Batteries': batteries,
                'Net charged load': net_charged, 'Net flat load': net_flat}
 
     weight_df = df.append(new_row, ignore_index=True)

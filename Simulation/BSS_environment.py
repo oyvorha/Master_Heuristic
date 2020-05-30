@@ -11,7 +11,7 @@ class Environment:
     charged_rate = 0.95
 
     def __init__(self, start_hour, simulation_time, stations, vehicles, init_branching, scenarios, memory_mode=False,
-                 trigger_start_stack=list(), greedy=False, weights=(0.4, 0.2, 0.4, 0, 1), writer=None,
+                 trigger_start_stack=list(), greedy=False, weights=(0.4, 0.2, 0.4, 0.5, 0.5), writer=None,
                  criticality=True):
         self.stations = stations
         self.vehicles = vehicles

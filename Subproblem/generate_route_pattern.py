@@ -43,7 +43,7 @@ class GenerateRoutePattern:
     average_handling_time = 6
 
     def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=False,
-                 crit_weights=(0.3, 0.2, 0.4, 0.1)):
+                 crit_weights=(0.4, 0.1, 0, 0.5)):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle

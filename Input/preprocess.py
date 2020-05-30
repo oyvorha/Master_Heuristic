@@ -1,7 +1,6 @@
 import json
 from google.cloud import bigquery as bq
 from Simulation.set_up_simulation import setup_stations_students
-from Input.Google_API import write_driving_times
 
 
 def get_driving_time_from_id(station_id_1, station_id_2):
@@ -16,7 +15,7 @@ def generate_all_stations(init_hour, n):
     # valid_date = "2019-10-10"
     stations_uip = setup_stations_students(client)
     print("UIP DB objects collected")
-    demand_met = 0.75
+    demand_met = 0.5
 
     with open('Input/station.json', 'r') as f:
         ideal_state_json = json.load(f)
