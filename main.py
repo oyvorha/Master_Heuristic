@@ -164,20 +164,10 @@ def runtime_analysis():
 
 
 if __name__ == '__main__':
-    print("w: weight analysis, c: strategy comparison, r: runtime analysis")
+    print("w: weight analysis, c: strategy comparison, r: runtime analysis, fs: first step analysis")
     choice = input('Choose action: ')
-    if choice == 'w1':
+    if choice == 'w':
         weight_analysis(0, 2, choice)
-    elif choice == 'w2':
-        weight_analysis(2, 4, choice)
-    elif choice == 'w3':
-        weight_analysis(4, 5, choice)
-    elif choice == 'w4':
-        weight_analysis(45, 60, choice)
-    elif choice == 'w5':
-        weight_analysis(60, 75, choice)
-    elif choice == 'w6':
-        weight_analysis(75, 105, choice)
     elif choice == 'c':
         strategy_analysis()
     elif choice == 'fs':
