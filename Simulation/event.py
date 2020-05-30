@@ -75,8 +75,20 @@ class VehicleEvent(Event):
         hour = self.env.current_time // 60
         start = time.time()
         heuristic_man = HeuristicManager(self.env.vehicles, self.env.stations, hour,
-                                         no_scenarios=self.env.scenarios, init_branching=self.env.init_branching,
-                                         weights=self.env.weights, writer=self.env.writer)
+                                             no_scenarios=self.env.scenarios, init_branching=self.env.init_branching,
+                                             weights=self.env.weights)
+        next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
+        net_charged = abs(pattern[1] - pattern[3])
+        net_flat = abs(pattern[2] - pattern[4])
+        save_first_step_solution(self.id, self.env.branching, pattern[0], net_charged, net_flat, next_station,
+                                 self.env.writer)
+        for branching in [3, 5, 7, 9]:
+            heuristic_man.reset_manager_and_run(branching)
+            next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
+            net_charged = abs(pattern[1] - pattern[3])
+            net_flat = abs(pattern[2] - pattern[4])
+            save_first_step_solution(self.id, self.env.branching, pattern[0], net_charged, net_flat, next_station,
+                                     self.env.writer)
         self.event_time = time.time() - start
 
         # Index of vehicle that triggered event

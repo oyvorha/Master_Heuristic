@@ -26,6 +26,15 @@ class HeuristicManager:
         self.writer = writer
 
         self.generate_scenarios()
+
+        self.run_subproblems()
+        self.run_master_problem()
+
+    def reset_manager_and_run(self, branching):
+        self.route_patterns = list()
+        self.subproblem_scores = list()
+        self.master_solution = None
+        self.init_branching = branching
         self.run_subproblems()
         self.run_master_problem()
 
