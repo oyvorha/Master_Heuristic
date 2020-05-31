@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 
 start_hour = 7
 no_stations = 200
-branching = 1
+branching = 5
 subproblem_scenarios = 1
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
@@ -39,24 +39,30 @@ def get_weight_combination():
 def get_weight_combination_reduced():
     # W_V, W_R, W_D, W_VN, W_VL
     weights = list()
-    vals = [0.3, 0.4, 0.5, 0.6, 0.7]
-    W_D = 0.2
-    W_VN = 0.4
-    W_VL = 0.6
-    for val2 in vals:
-        W_V = val2
-        W_R = 1 - W_D - W_V
-        weights.append((W_V, W_R, W_D, W_VN, W_VL))
+    vals = [0.1, 0.3, 0.5, 0.7, 0.9]
+    vals_n = [0.3, 0.4, 0.5, 0.6, 0.7]
+    for val1 in vals:
+        W_D = val1
+        for val2 in vals:
+            if W_D + val2 <= 1:
+                W_V = val2
+            else:
+                break
+            W_R = 1 - W_D - W_V
+            for val3 in vals_n:
+                W_N = val3
+                W_L = 1 - W_N
+                weights.append((W_V, W_R, W_D, W_N, W_L))
     print(len(weights))
     return weights
 
 
-def weight_analysis(a, b, choice):
-    all_sets = get_weight_combination_reduced()[a:b]
+def weight_analysis(choice):
+    all_sets = get_weight_combination_reduced()
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(20)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(5)]
 
     # Create excel writer
     writer = pd.ExcelWriter("Output/output_weights_" + choice + ".xlsx", engine='openpyxl')
@@ -77,7 +83,7 @@ def weight_analysis(a, b, choice):
             sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios,
                                   trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
             sim_env.run_simulation()
-            save_weight_output(i+1+a, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions, writer)
+            save_weight_output(i+1, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions, writer)
 
 
 def strategy_analysis():
@@ -166,8 +172,8 @@ def runtime_analysis():
 if __name__ == '__main__':
     print("w: weight analysis, c: strategy comparison, r: runtime analysis, fs: first step analysis")
     choice = input('Choose action: ')
-    if choice == 'w':
-        weight_analysis(0, 2, choice)
+    if choice == 'w1':
+        weight_analysis(choice)
     elif choice == 'c':
         strategy_analysis()
     elif choice == 'fs':

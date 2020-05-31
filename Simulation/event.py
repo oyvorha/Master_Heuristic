@@ -77,18 +77,21 @@ class VehicleEvent(Event):
         heuristic_man = HeuristicManager(self.env.vehicles, self.env.stations, hour,
                                              no_scenarios=self.env.scenarios, init_branching=self.env.init_branching,
                                              weights=self.env.weights)
+        """
         next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
-        net_charged = abs(pattern[1] - pattern[3])
-        net_flat = abs(pattern[2] - pattern[4])
-        save_first_step_solution(self.id, self.env.branching, pattern[0], net_charged, net_flat, next_station,
-                                 self.env.writer)
-        for branching in [3, 5, 7, 9]:
+        save_first_step_solution(self.id, self.env.init_branching, pattern[0], pattern[1]-pattern[3], pattern[2]-pattern[4],
+                                 next_station, self.env.writer, self.vehicle.current_station.get_ideal_state(hour),
+                                 self.vehicle.current_station.current_charged_bikes,
+                                 self.vehicle.current_station.current_flat_bikes)
+        
+        for branching in [5]:
             heuristic_man.reset_manager_and_run(branching)
             next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
-            net_charged = abs(pattern[1] - pattern[3])
-            net_flat = abs(pattern[2] - pattern[4])
-            save_first_step_solution(self.id, self.env.branching, pattern[0], net_charged, net_flat, next_station,
-                                     self.env.writer)
+            save_first_step_solution(self.id, branching, pattern[0], pattern[1]-pattern[3], pattern[2]-pattern[4],
+                                     next_station, self.env.writer, self.vehicle.current_station.get_ideal_state(hour),
+                                     self.vehicle.current_station.current_charged_bikes,
+                                     self.vehicle.current_station.current_flat_bikes)
+        """
         self.event_time = time.time() - start
 
         # Index of vehicle that triggered event

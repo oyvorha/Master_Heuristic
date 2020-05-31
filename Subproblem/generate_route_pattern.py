@@ -1,5 +1,4 @@
 import copy
-import json
 
 
 class Route:
@@ -24,9 +23,8 @@ class Route:
         swap, bat_load, flat_load, bat_unload, flat_unload = (0, 0, 0, 0, 0)
         if not self.starting_station.depot:
             if policy == 'greedy':
-                # Make ideal state artificially lower for increased flexibility --> Temporarily set to 3
                 bat_load = max(0, min(self.starting_station.current_charged_bikes, self.vehicle.available_bike_capacity(),
-                                      self.starting_station.current_charged_bikes - self.starting_station.get_ideal_state(self.hour) - 3))
+                                      self.starting_station.current_charged_bikes - self.starting_station.get_ideal_state(self.hour)))
                 bat_unload = max(0, min(self.vehicle.current_charged_bikes, self.starting_station.available_parking(),
                                  self.starting_station.get_ideal_state(self.hour) - self.starting_station.current_charged_bikes))
                 flat_load = min(self.starting_station.current_flat_bikes, self.vehicle.available_bike_capacity())
@@ -42,8 +40,8 @@ class GenerateRoutePattern:
     flexibility = 3
     average_handling_time = 6
 
-    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=False,
-                 crit_weights=(0.4, 0.1, 0, 0.5)):
+    def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=True,
+                 crit_weights=(0.4, 0.1, 0.2, 0.3)):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
@@ -116,4 +114,8 @@ class GenerateRoutePattern:
                     for bat_unload in [0, rep_col.upper_extremes[3]]:
                         for flat_unload in [0, rep_col.upper_extremes[4]]:
                             pat.append([swap, bat_load, flat_load, bat_unload, flat_unload])
+                            pat.append([swap // 2, bat_load // 2, flat_load // 2, bat_unload // 2, flat_unload // 2])
+                            pat.append([swap // 4, bat_load // 4, flat_load // 4, bat_unload // 4, flat_unload // 4])
+                            pat.append([swap // 4 * 3, bat_load // 4 * 3, flat_load // 4 * 3, bat_unload // 4 * 3,
+                                        flat_unload // 4 * 3])
         self.patterns = list(set(tuple(val) for val in pat))

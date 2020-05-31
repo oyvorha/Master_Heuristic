@@ -13,15 +13,11 @@ class Vehicle:
 
     def change_battery_bikes(self, bikes):
         self.current_charged_bikes += bikes
-        if self.current_charged_bikes < 0:
-            self.current_charged_bikes = 0
         if self.current_charged_bikes + self.current_flat_bikes > self.bike_capacity:
             print("Capacity overflow")
 
     def change_flat_bikes(self, bikes):
         self.current_flat_bikes += bikes
-        if self.current_flat_bikes < 0:
-            self.current_flat_bikes = 0
         if self.current_charged_bikes + self.current_flat_bikes > self.bike_capacity:
             print("Capacity overflow")
 
