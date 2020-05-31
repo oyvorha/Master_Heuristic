@@ -39,11 +39,12 @@ def get_weight_combination():
 def get_weight_combination_reduced():
     # W_V, W_R, W_D, W_VN, W_VL
     weights = list()
-    vals = [0.1, 0.3, 0.5, 0.7, 0.9]
-    vals_n = [0.3, 0.4, 0.5, 0.6, 0.7]
-    for val1 in vals:
+    vals_d = [0.1, 0.2, 0.3, 0.4]
+    vals_v = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    vals_n = [0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    for val1 in vals_v:
         W_D = val1
-        for val2 in vals:
+        for val2 in vals_d:
             if W_D + val2 <= 1:
                 W_V = val2
             else:
@@ -69,14 +70,15 @@ def weight_analysis(choice):
     book = load_workbook("Output/output_weights_" + choice + ".xlsx")
     writer.book = book
 
+    init_base_stack = [copy.copy(trip) for trip in scenarios[0]]
+    sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
+                           trigger_start_stack=init_base_stack, memory_mode=True)
+    sim_base.run_simulation()
+    reset_stations(stations)
+
     for i in range(len(all_sets)):
         for j in range(len(scenarios)):
-            reset_stations(stations)
-            init_base_stack = [copy.copy(trip) for trip in scenarios[j]]
-            sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
-                                   trigger_start_stack=init_base_stack, memory_mode=True, weights=all_sets[i])
-            sim_base.run_simulation()
-            reset_stations(stations)
+            # reset_stations(stations)
             init_stack = [copy.copy(trip) for trip in scenarios[j]]
             v = Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
                           id=0)
