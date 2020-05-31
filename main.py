@@ -74,11 +74,10 @@ def weight_analysis(choice):
     sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
                            trigger_start_stack=init_base_stack, memory_mode=True)
     sim_base.run_simulation()
-    reset_stations(stations)
 
     for i in range(len(all_sets)):
         for j in range(len(scenarios)):
-            # reset_stations(stations)
+            reset_stations(stations)
             init_stack = [copy.copy(trip) for trip in scenarios[j]]
             v = Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
                           id=0)
