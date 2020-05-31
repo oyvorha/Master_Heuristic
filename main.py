@@ -63,17 +63,20 @@ def weight_analysis(choice):
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(1)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(5)]
 
     # Create excel writer
     writer = pd.ExcelWriter("Output/output_weights_" + choice + ".xlsx", engine='openpyxl')
     book = load_workbook("Output/output_weights_" + choice + ".xlsx")
     writer.book = book
 
-    init_base_stack = [copy.copy(trip) for trip in scenarios[0]]
-    sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
-                           trigger_start_stack=init_base_stack, memory_mode=True)
-    sim_base.run_simulation()
+    base_viol = list()
+    for j in range(len(scenarios)):
+        init_base_stack = [copy.copy(trip) for trip in scenarios[0]]
+        sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
+                               trigger_start_stack=init_base_stack, memory_mode=True)
+        sim_base.run_simulation()
+        base_viol.append(sim_base)
 
     for i in range(len(all_sets)):
         for j in range(len(scenarios)):
@@ -84,7 +87,7 @@ def weight_analysis(choice):
             sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios,
                                   trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
             sim_env.run_simulation()
-            save_weight_output(i+1, j+1, sim_env, sim_base.total_starvations, sim_base.total_congestions, writer)
+            save_weight_output(i+1, j+1, sim_env, base_viol[j].total_starvations, base_viol[j].total_congestions, writer)
 
 
 def strategy_analysis():
