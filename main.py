@@ -43,10 +43,10 @@ def get_weight_combination_reduced():
     vals_v = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
     vals_n = [0.5, 0.6, 0.7, 0.8, 0.9, 1]
     for val1 in vals_v:
-        W_D = val1
+        W_V = val1
         for val2 in vals_d:
-            if W_D + val2 <= 1:
-                W_V = val2
+            if W_V + val2 <= 1:
+                W_D = val2
             else:
                 break
             W_R = 1 - W_D - W_V
