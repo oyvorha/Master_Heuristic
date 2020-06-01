@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 start_hour = 7
 no_stations = 200
 branching = 5
-subproblem_scenarios = 3
+subproblem_scenarios = 5
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
@@ -142,8 +142,8 @@ def strategy_analysis():
 
 def first_step():
     # Create excel writer
-    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
-    book = load_workbook("Output/output.xlsx")
+    writer = pd.ExcelWriter("Output/first_step.xlsx", engine='openpyxl')
+    book = load_workbook("Output/first_step.xlsx")
     writer.book = book
     v = Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0
                 , current_station=stations[0], id=0)

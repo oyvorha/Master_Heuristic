@@ -98,7 +98,7 @@ def criticality_weights(instance, weight_set, w_drive, w_dev, w_viol, w_net, sub
                                'w_net', 'subscore'])
 
     new_row = {'Instance': instance, 'weight_set': weight_set, 'w_drive': w_drive, 'w_dev': w_dev,
-               'w_viol': w_viol, 'w_flat': w_net, 'subscore': subscore}
+               'w_viol': w_viol, 'w_net': w_net, 'subscore': subscore}
 
     weight_df = df.append(new_row, ignore_index=True)
 
