@@ -79,13 +79,13 @@ class VehicleEvent(Event):
         heuristic_man = HeuristicManager(self.env.vehicles, self.env.stations, hour,
                                              no_scenarios=self.env.scenarios, init_branching=self.env.init_branching,
                                              weights=self.env.weights, crit_weights=c_weights[0])
-
+        """
         for i in range(1, len(c_weights)):
             heuristic_man.reset_manager_and_run(self.env.init_branching, c_weights[i])
             average_subscore = np.average(heuristic_man.subproblem_scores)
             criticality_weights(self.env.current_time, i, c_weights[i][0], c_weights[i][1], c_weights[i][2],
                                 c_weights[i][3], average_subscore, self.env.writer)
-        """
+        
         next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
         save_first_step_solution(self.id, self.env.init_branching, pattern[0], pattern[1]-pattern[3], pattern[2]-pattern[4],
                                  next_station, self.env.writer, self.vehicle.current_station.get_ideal_state(hour),

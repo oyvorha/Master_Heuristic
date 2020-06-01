@@ -63,7 +63,7 @@ def weight_analysis(choice):
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(5)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(2)]
 
     # Create excel writer
     writer = pd.ExcelWriter("Output/output_weights_" + choice + ".xlsx", engine='openpyxl')
@@ -72,6 +72,7 @@ def weight_analysis(choice):
 
     base_viol = list()
     for j in range(len(scenarios)):
+        reset_stations(stations)
         init_base_stack = [copy.copy(trip) for trip in scenarios[0]]
         sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
                                trigger_start_stack=init_base_stack, memory_mode=True)
