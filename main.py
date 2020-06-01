@@ -73,7 +73,7 @@ def weight_analysis(choice):
     base_viol = list()
     for j in range(len(scenarios)):
         reset_stations(stations)
-        init_base_stack = [copy.copy(trip) for trip in scenarios[0]]
+        init_base_stack = [copy.copy(trip) for trip in scenarios[j]]
         sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
                                trigger_start_stack=init_base_stack, memory_mode=True)
         sim_base.run_simulation()
