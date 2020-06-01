@@ -143,8 +143,8 @@ def strategy_analysis():
 
 def first_step():
     # Create excel writer
-    writer = pd.ExcelWriter("Output/first_step.xlsx", engine='openpyxl')
-    book = load_workbook("Output/first_step.xlsx")
+    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
+    book = load_workbook("Output/output.xlsx")
     writer.book = book
     v = Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0
                 , current_station=stations[0], id=0)

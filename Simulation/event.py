@@ -7,8 +7,8 @@ import numpy as np
 
 class Event:
 
-    handling_time = 0.3
-    parking_time = 0
+    handling_time = 0.5
+    parking_time = 1
     id = 0
 
     def __init__(self, start_time):
@@ -78,13 +78,14 @@ class VehicleEvent(Event):
         c_weights = HeuristicManager.get_criticality_weights()
         heuristic_man = HeuristicManager(self.env.vehicles, self.env.stations, hour,
                                              no_scenarios=self.env.scenarios, init_branching=self.env.init_branching,
-                                             weights=self.env.weights, crit_weights=c_weights[0])
-        """
-        for i in range(1, len(c_weights)):
+                                             weights=self.env.weights, crit_weights=(0.4, 0.1, 0.2, 0.3))
+
+        for i in range(len(c_weights)):
             heuristic_man.reset_manager_and_run(self.env.init_branching, c_weights[i])
             average_subscore = np.average(heuristic_man.subproblem_scores)
             criticality_weights(self.env.current_time, i, c_weights[i][0], c_weights[i][1], c_weights[i][2],
                                 c_weights[i][3], average_subscore, self.env.writer)
+        """
         
         next_station, pattern = heuristic_man.return_solution(vehicle_index=self.vehicle.id)
         save_first_step_solution(self.id, self.env.init_branching, pattern[0], pattern[1]-pattern[3], pattern[2]-pattern[4],
