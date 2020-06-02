@@ -2,12 +2,6 @@ import pandas as pd
 
 
 def save_time_output(no_stations, branching, scenarios, no_vehicles, time, writer):
-    """
-    book = load_workbook("Output/output.xlsx")
-    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
-    writer.book = book
-    """
-
     df = pd.DataFrame(columns=['Stations', 'Vehicles', 'Branching', 'Scenarios', 'Time'])
 
     new_row = {'Stations': no_stations, 'Vehicles': no_vehicles, 'Branching': branching, 'Scenarios': scenarios,
@@ -46,12 +40,6 @@ def save_weight_output(set_id, scenario, env, base_s, base_c, writer):
 
 def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_c, writer, crit_off_s=None,
                            crit_off_c=None):
-    """
-    book_c = load_workbook("Output/output_compare.xlsx")
-    writer_c = pd.ExcelWriter("Output/output_compare.xlsx", engine='openpyxl')
-    writer_c.book = book_c
-    """
-
     df = pd.DataFrame(columns=['Scenario', 'Total_requests', 'Base starvations', 'Base congestions',
                                'Greedy starvations', 'Greedy congestions', 'Heuristic starvations',
                                'Heuristic congestions', 'Criticality off starvations', 'Criticality off congestions'])
@@ -75,11 +63,11 @@ def save_comparison_output(scenario, sim_heur, base_s, base_c, greedy_s, greedy_
 def save_first_step_solution(instance, scenarios, batteries, net_charged, net_flat, next_station, writer, ideal,
                              charged, flat):
 
-    df = pd.DataFrame(columns=['Instance', 'Branching', 'Next station', '#Batteries', 'Net charged load',
+    df = pd.DataFrame(columns=['Instance', 'Scenarios', 'Next station', '#Batteries', 'Net charged load',
                                'Net flat load', 'Ideal state', 'Charged', 'Flat'])
 
-    new_row = {'Instance': instance, 'Branching': scenarios, 'Next station': next_station.id, '#Batteries': batteries,
-               'Net charged load': net_charged, 'Net flat load': net_flat, 'Ideal state:': ideal, 'Charged': charged,
+    new_row = {'Instance': instance, 'Scenarios': scenarios, 'Next station': next_station.id, '#Batteries': batteries,
+               'Net charged load': net_charged, 'Net flat load': net_flat, 'Ideal state': ideal, 'Charged': charged,
                'Flat': flat}
 
     weight_df = df.append(new_row, ignore_index=True)
@@ -90,22 +78,4 @@ def save_first_step_solution(instance, scenarios, batteries, net_charged, net_fl
         writer.save()
     else:
         weight_df.to_excel(writer, index=False, sheet_name='First_solution')
-        writer.save()
-
-
-def criticality_weights(instance, weight_set, w_drive, w_dev, w_viol, w_net, subscore, writer):
-    df = pd.DataFrame(columns=['Instance', 'weight_set', 'w_drive', 'w_dev', 'w_viol',
-                               'w_net', 'subscore'])
-
-    new_row = {'Instance': instance, 'weight_set': weight_set, 'w_drive': w_drive, 'w_dev': w_dev,
-               'w_viol': w_viol, 'w_net': w_net, 'subscore': subscore}
-
-    weight_df = df.append(new_row, ignore_index=True)
-
-    if 'Weight_criticality' in writer.book.sheetnames:
-        start_row = writer.sheets['Weight_criticality'].max_row
-        weight_df.to_excel(writer, startrow=start_row, index=False, header=False, sheet_name='Weight_criticality')
-        writer.save()
-    else:
-        weight_df.to_excel(writer, index=False, sheet_name='Weight_criticality')
         writer.save()

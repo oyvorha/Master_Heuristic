@@ -44,7 +44,6 @@ class Environment:
     def run_simulation(self):
         while self.current_time < self.simulation_stop:
             self.event_trigger()
-            break
         self.end_simulation()
 
     def set_up_system(self):

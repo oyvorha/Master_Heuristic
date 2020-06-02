@@ -106,8 +106,6 @@ class GenerateRoutePattern:
 
     def gen_patterns(self):
         rep_col = self.finished_gen_routes[0]
-        print(self.vehicle.current_station.ideal_state)
-        print(rep_col.upper_extremes)
         pat = list()
         # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
         for swap in [0, rep_col.upper_extremes[0]]:
@@ -128,4 +126,3 @@ class GenerateRoutePattern:
                     pat.append([swap // 4, bat_load // 4, 0, bat_unload // 4, flat_unload_upper // 4])
                     pat.append([swap // 4 * 3, bat_load // 4 * 3, 0, bat_unload // 4 * 3, flat_unload_upper // 4 * 3])
         self.patterns = list(set(tuple(val) for val in pat))
-        print("Patterns:", len(self.patterns))

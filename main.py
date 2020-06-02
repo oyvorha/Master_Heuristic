@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 start_hour = 7
 no_stations = 200
 branching = 7
-subproblem_scenarios = 1
+subproblem_scenarios = 10
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
@@ -91,20 +91,20 @@ def weight_analysis(choice):
             save_weight_output(i+1, j+1, sim_env, base_viol[j].total_starvations, base_viol[j].total_congestions, writer)
 
 
-def strategy_analysis():
+def strategy_analysis(scen, veh):
     # Create excel writer
     writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
     book = load_workbook("Output/output.xlsx")
     writer.book = book
 
     vehicles = list()
-    for i in range(2):
+    for i in range(veh):
         vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0,
                                 current_station=stations[i], id=i))
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
-    # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(50)]
+    # Generating scenarios
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(scen)]
 
     scenario = 1
     for sc in scenarios:
@@ -114,6 +114,7 @@ def strategy_analysis():
                                trigger_start_stack=init_base_stack, memory_mode=True)
         sim_base.run_simulation()
         reset_stations(stations)
+
         init_greedy_stack = [copy.copy(trip) for trip in sc]
         vehicles_greedy = [copy.copy(veh) for veh in vehicles]
         sim_greedy = Environment(start_hour, simulation_time, stations, vehicles_greedy, branching,
@@ -179,17 +180,10 @@ if __name__ == '__main__':
     choice = input('Choose action: ')
     if choice == 'w1':
         weight_analysis(choice)
-    if choice == 'w2':
-        weight_analysis(choice)
-    if choice == 'w3':
-        weight_analysis(choice)
-    if choice == 'w4':
-        weight_analysis(choice)
-    if choice == 'w5':
-        weight_analysis(choice)
-
     elif choice == 'c':
-        strategy_analysis()
+        scenarios = input('Number of scenarios:')
+        vehicles = input('Number of vehicles:')
+        strategy_analysis(int(scenarios), int(vehicles))
     elif choice == 'fs':
         first_step()
     elif choice == 'r':
