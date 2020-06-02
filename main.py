@@ -9,8 +9,8 @@ from openpyxl import load_workbook
 
 start_hour = 7
 no_stations = 200
-branching = 5
-subproblem_scenarios = 10
+branching = 7
+subproblem_scenarios = 1
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
@@ -55,7 +55,6 @@ def get_weight_combination_reduced():
                 W_N = val3
                 W_L = 1 - W_N
                 weights.append((W_V, W_R, W_D, W_N, W_L))
-    print(len(weights))
     return weights
 
 
@@ -159,20 +158,20 @@ def runtime_analysis():
     book = load_workbook("Output/runtime.xlsx")
     writer.book = book
     stations = generate_pattern_stations(200)
-    stations[4].depot = True
     for sub_sc in [1, 10, 20, 30]:
         for no_vehicles in [1, 2, 3, 4, 5]:
                 vehicles = list()
                 for i in range(no_vehicles):
-                    vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=5, init_flat_bikes=5,
+                    vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=8, init_flat_bikes=8, bike_cap=25,
                                             current_station=stations[i], id=i))
                 for no_stations in [20, 50, 100, 150, 200]:
                     sta = stations[:no_stations]
                     sim_env = Environment(start_hour, simulation_time, sta, vehicles, branching, sub_sc,
-                                          memory_mode=True, writer=writer)
+                                          memory_mode=True)
                     sim_env.run_simulation()
                     time = sim_env.event_times[0]
                     save_time_output(no_stations, branching, sub_sc, no_vehicles, time, writer)
+                    reset_stations(stations)
 
 
 if __name__ == '__main__':

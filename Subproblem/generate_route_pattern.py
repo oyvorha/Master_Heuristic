@@ -41,7 +41,7 @@ class GenerateRoutePattern:
     average_handling_time = 6
 
     def __init__(self, starting_st, stations, vehicle, hour, init_branching=8, criticality=True, dynamic=True,
-                 crit_weights=(0.4, 0.1, 0.2, 0.3)):
+                 crit_weights=(0.2, 0.1, 0.5, 0.2)):
         self.starting_station = starting_st
         self.time_horizon = 25
         self.vehicle = vehicle
@@ -106,16 +106,26 @@ class GenerateRoutePattern:
 
     def gen_patterns(self):
         rep_col = self.finished_gen_routes[0]
+        print(self.vehicle.current_station.ideal_state)
+        print(rep_col.upper_extremes)
         pat = list()
         # Q_B, Q_CCL, Q_FCL, Q_CCU, Q_FCU
         for swap in [0, rep_col.upper_extremes[0]]:
             for bat_load in [0, rep_col.upper_extremes[1]]:
-                for flat_load in [0, rep_col.upper_extremes[2]]:
-                    for bat_unload in [0, rep_col.upper_extremes[3]]:
-                        for flat_unload in [0, rep_col.upper_extremes[4]]:
-                            pat.append([swap, bat_load, flat_load, bat_unload, flat_unload])
-                            pat.append([swap // 2, bat_load // 2, flat_load // 2, bat_unload // 2, flat_unload // 2])
-                            pat.append([swap // 4, bat_load // 4, flat_load // 4, bat_unload // 4, flat_unload // 4])
-                            pat.append([swap // 4 * 3, bat_load // 4 * 3, flat_load // 4 * 3, bat_unload // 4 * 3,
-                                        flat_unload // 4 * 3])
+                for bat_unload in [0, rep_col.upper_extremes[3]]:
+                    flat_load_upper = rep_col.upper_extremes[2]
+                    flat_unload_upper = rep_col.upper_extremes[4]
+                    pat.append([swap, bat_load, 0, bat_unload, 0])
+                    pat.append([swap // 2, bat_load // 2, 0, bat_unload // 2, 0])
+                    pat.append([swap // 4, bat_load // 4, 0, bat_unload // 4, 0])
+                    pat.append([swap // 4 * 3, bat_load // 4 * 3, 0, bat_unload // 4 * 3, 0])
+                    pat.append([swap, bat_load, flat_load_upper, bat_unload, 0])
+                    pat.append([swap // 2, bat_load // 2, flat_load_upper // 2, bat_unload // 2, 0])
+                    pat.append([swap // 4, bat_load // 4, flat_load_upper // 4, bat_unload // 4, 0])
+                    pat.append([swap // 4 * 3, bat_load // 4 * 3, flat_load_upper // 4 * 3, bat_unload // 4 * 3, 0])
+                    pat.append([swap, bat_load, 0, bat_unload, flat_unload_upper])
+                    pat.append([swap // 2, bat_load // 2, 0, bat_unload // 2, flat_unload_upper // 2])
+                    pat.append([swap // 4, bat_load // 4, 0, bat_unload // 4, flat_unload_upper // 4])
+                    pat.append([swap // 4 * 3, bat_load // 4 * 3, 0, bat_unload // 4 * 3, flat_unload_upper // 4 * 3])
         self.patterns = list(set(tuple(val) for val in pat))
+        print("Patterns:", len(self.patterns))

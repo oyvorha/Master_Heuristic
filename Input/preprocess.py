@@ -70,8 +70,14 @@ def generate_pattern_stations(n):
     for st in stations_uip:
             st.battery_rate = 0.5
             st.ideal_state = st.station_cap // 2
-            st.current_charged_bikes = 1
-            st.current_flat_bikes = 1
+            st.current_charged_bikes = 8
+            st.current_flat_bikes = 8
+            st.init_charged = st.current_charged_bikes
+            st.init_flat = st.current_flat_bikes
+            ideal = {}
+            for hour in range(0, 24):
+                ideal[hour] = 16
+            st.ideal_state = ideal
     subset = stations_uip[:n]
     subset_ids = [s.id for s in subset]
     for st1 in subset:
