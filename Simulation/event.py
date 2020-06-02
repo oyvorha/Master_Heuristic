@@ -36,34 +36,27 @@ class VehicleEvent(Event):
             self.heuristic_solve()
 
     def greedy_solve(self):
+        hour = self.env.current_time // 60
         next_st_candidates = self.vehicle.current_station.get_candidate_stations(self.env.stations)
         next_station = next_st_candidates[random.randint(0, len(next_st_candidates) - 1)][0]
         swaps = min(self.vehicle.current_batteries, self.vehicle.current_station.current_flat_bikes)
-        self.env.vehicle_vis[self.vehicle.id][1].append([self.vehicle.current_charged_bikes,
-                                                         self.vehicle.current_flat_bikes,
-                                                         self.vehicle.current_batteries])
-        self.env.vehicle_vis[self.vehicle.id][3].append([self.vehicle.current_station.current_charged_bikes,
-                                                         self.vehicle.current_station.current_flat_bikes])
         self.vehicle.current_batteries -= swaps
         self.vehicle.current_station.current_flat_bikes -= swaps
         self.vehicle.current_station.current_charged_bikes += swaps
-        if self.vehicle.current_station.charging_station:
-            net_charged = min(self.vehicle.current_station.current_charged_bikes, self.vehicle.available_bike_capacity())
-            self.vehicle.current_station.current_charged_bikes -= net_charged
-            self.vehicle.current_charged_bikes += net_charged
-            net_flat = min(self.vehicle.current_flat_bikes, self.vehicle.current_station.available_parking())
-            self.vehicle.current_station.current_flat_bikes += net_flat
-            self.vehicle.current_flat_bikes -= net_flat
-        else:
-            net_charged = min(self.vehicle.current_station.available_parking(), self.vehicle.current_charged_bikes)
-            self.vehicle.current_station.current_charged_bikes += net_charged
-            self.vehicle.current_charged_bikes -= net_charged
-            net_flat = min(self.vehicle.current_station.current_flat_bikes, self.vehicle.available_bike_capacity())
-            self.vehicle.current_station.current_flat_bikes -= net_flat
-            self.vehicle.current_flat_bikes += net_flat
-        self.env.vehicle_vis[self.vehicle.id][0].append(next_station.id)
-        self.env.vehicle_vis[self.vehicle.id][2].append([swaps, net_charged, net_flat, net_charged, net_flat])
-        handling_time = (swaps + net_flat + net_charged) * Event.handling_time
+        bat_load = max(0, min(self.vehicle.current_station.current_charged_bikes,
+                              self.vehicle.available_bike_capacity(),
+                              self.vehicle.current_station.current_charged_bikes - self.vehicle.current_station.get_ideal_state(
+                                  hour)))
+        bat_unload = max(0, min(self.vehicle.current_charged_bikes, self.vehicle.current_station.available_parking(),
+                                self.vehicle.current_station.get_ideal_state(
+                                    hour) - self.vehicle.current_station.current_charged_bikes))
+        self.vehicle.current_station.current_charged_bikes += (bat_unload - bat_load)
+        self.vehicle.current_charged_bikes -= (bat_unload + bat_load)
+        flat_load = min(self.vehicle.current_station.current_flat_bikes, self.vehicle.available_bike_capacity())
+        flat_unload = min(self.vehicle.current_flat_bikes, self.vehicle.current_station.available_parking())
+        self.vehicle.current_station.current_flat_bikes -= (flat_load - flat_unload)
+        self.vehicle.current_flat_bikes += (flat_load - flat_unload)
+        handling_time = (swaps + abs(flat_load - flat_unload) + abs(bat_unload + bat_load)) * Event.handling_time
         driving_time = self.vehicle.current_station.get_station_car_travel_time(next_station.id)
         self.vehicle.current_station = next_station
         end_time = self.env.current_time + driving_time + handling_time + Event.parking_time
