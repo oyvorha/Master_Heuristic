@@ -75,8 +75,8 @@ def run_master_model(parameters):
         m.addConstrs(
             quicksum(lam[(v, r, p, s)] * Q_B[v][r][p] for r in Routes[v] for p in Patterns[v]) == q_B_nac[v] for v in
             Vehicles for s in Scenarios)
-        # m.addConstrs(quicksum(lam[(v, r, p, s)] for p in Patterns[v] for r in Routes[v]) == 1
-        #             for v in Vehicles for s in Scenarios)
+        m.addConstrs(quicksum(lam[(v, r, p, s)] for p in Patterns[v] for r in Routes[v]) == 1
+                     for v in Vehicles for s in Scenarios)
 
         # Secure that first move is legal in terms of capacities
         m.addConstrs(q_CCL_nac[v] + q_FCL_nac[v] <= Q_CV[v] - L_FV[v] - L_CV[v] + q_CCU_nac[v] + q_FCU_nac[v] for v in

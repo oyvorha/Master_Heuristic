@@ -95,7 +95,8 @@ class Station:
     def get_incoming_flat_rate(self, hour):
         return self.incoming_flat_bike_rate[hour]
 
-    def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev):
+    def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev, w_net,
+                              first_station):
         # ------- Time to violation -------
         if self.depot and vehicle.current_batteries < 2:
             return 100000
@@ -123,14 +124,23 @@ class Station:
         if self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] > 0:
             charged_at_t = self.current_charged_bikes - (self.demand_per_hour[hour] -
                     self.incoming_charged_bike_rate[hour]) * min(time_horizon, time_to_starvation)
+            if self.get_ideal_state(hour) - charged_at_t > 0 and first_station and (vehicle.current_charged_bikes < 2 and (
+                    vehicle.current_batteries < 2 or self.current_flat_bikes < 2)):
+                return 0
         # Congesting station
         elif self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] < 0:
             charged_at_t = self.current_charged_bikes + (self.incoming_charged_bike_rate[hour]
                     - self.demand_per_hour[hour]) * min(time_horizon, time_to_congestion)
+            if self.available_parking() == 0 and first_station and vehicle.available_bike_capacity() < 2:
+                return 0
         else:
             charged_at_t = self.current_charged_bikes
-        dev = abs(self.ideal_state - charged_at_t)
-        return - w_viol * time_to_violation - w_drive * driving_time + w_dev * dev
+        dev = abs(self.get_ideal_state(hour) - charged_at_t)
+        net = abs(self.get_incoming_charged_rate(hour) - self.get_outgoing_customer_rate(hour))
+        return - w_viol * time_to_violation - w_drive * driving_time + w_dev * dev + w_net * net
 
-    def get_station_car_travel_time(self, end_st_id, json_times=True):
+    def get_station_car_travel_time(self, end_st_id):
         return self.station_car_travel_time[end_st_id]
+
+    def get_ideal_state(self, hour):
+        return self.ideal_state[hour]

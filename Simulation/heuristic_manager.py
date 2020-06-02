@@ -10,7 +10,8 @@ class HeuristicManager:
 
     time_h = 25
 
-    def __init__(self, vehicles, station_full_set, hour, no_scenarios=1, init_branching=7, weights=None):
+    def __init__(self, vehicles, station_full_set, hour, no_scenarios=1, init_branching=7, weights=None,
+                 criticality=True, writer=None, crit_weights=None):
         self.no_scenarios = no_scenarios
         self.customer_arrival_scenarios = list()
         self.vehicles = vehicles
@@ -21,17 +22,30 @@ class HeuristicManager:
         self.init_branching = init_branching
         self.hour = hour
         self.weights = weights
+        self.criticality = criticality
+        self.crit_weights = crit_weights
+        self.writer = writer
 
         self.generate_scenarios()
+
+        self.run_subproblems()
+        self.run_master_problem()
+
+    def reset_manager_and_run(self, branching):
+        self.route_patterns = list()
+        self.subproblem_scores = list()
+        self.master_solution = None
+        self.init_branching = branching
         self.run_subproblems()
         self.run_master_problem()
 
     def run_vehicle_subproblems(self, vehicle):
         gen = GenerateRoutePattern(vehicle.current_station, self.station_set, vehicle,
-                                   self.hour, init_branching=self.init_branching)
+                                   self.hour, init_branching=self.init_branching, criticality=self.criticality,
+                                   crit_weights=self.crit_weights)
         gen.get_columns()
         self.route_patterns.append(gen)
-        model_man = ModelManager(vehicle)
+        model_man = ModelManager(vehicle, self.hour)
         route_scores = list()
         for route in gen.finished_gen_routes:
             route_full_set_index = [get_index(st.id, self.station_set) for st in route.stations]
@@ -85,6 +99,7 @@ class HeuristicManager:
                 c3_times = HeuristicManager.poisson_simulation(station.get_outgoing_customer_rate(self.hour) / 60, HeuristicManager.time_h)
                 scenario.append([c1_times, c2_times, c3_times])
             self.customer_arrival_scenarios.append(scenario)
+
 
     @staticmethod
     def poisson_simulation(intensity_rate, time_steps):
