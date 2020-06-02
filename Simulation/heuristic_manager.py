@@ -110,24 +110,3 @@ class HeuristicManager:
             for i in range(arrival):
                 times.append(t)
         return times
-
-    @staticmethod
-    def get_criticality_weights():
-        # w_drive, w_dev, w_viol, w_flat
-        vals = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-        weights = list()
-        for val1 in vals:
-            w_drive = val1
-            for val2 in vals:
-                if w_drive + val2 <= 1:
-                    w_dev = val2
-                else:
-                    break
-                for val3 in vals:
-                    if w_drive + w_dev + val3 <= 1:
-                        w_viol = val3
-                    else:
-                        break
-                    w_flat = 1 - w_drive - w_dev - w_viol
-                    weights.append((w_drive, w_dev, w_viol, w_flat))
-        return weights

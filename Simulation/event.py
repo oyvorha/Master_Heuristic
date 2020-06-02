@@ -75,10 +75,9 @@ class VehicleEvent(Event):
     def heuristic_solve(self):
         hour = self.env.current_time // 60
         start = time.time()
-        # c_weights = HeuristicManager.get_criticality_weights()
         heuristic_man = HeuristicManager(self.env.vehicles, self.env.stations, hour,
                                              no_scenarios=self.env.scenarios, init_branching=self.env.init_branching,
-                                             weights=self.env.weights, crit_weights=(0.4, 0.1, 0.2, 0.3))
+                                             weights=self.env.weights, crit_weights=self.env.crit_weights)
 
         """
         for i in range(len(c_weights)):

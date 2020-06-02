@@ -12,7 +12,7 @@ class Environment:
 
     def __init__(self, start_hour, simulation_time, stations, vehicles, init_branching, scenarios, memory_mode=False,
                  trigger_start_stack=list(), greedy=False, weights=(0.7, 0.2, 0.1, 0.7, 0.3), writer=None,
-                 criticality=True):
+                 criticality=True, crit_weights=(0.4, 0.1, 0.2, 0.3)):
         self.stations = stations
         self.vehicles = vehicles
         self.current_time = start_hour * 60
@@ -27,6 +27,7 @@ class Environment:
         self.event_times = list()
         self.writer = writer
         self.criticality = criticality
+        self.crit_weights = crit_weights
 
         self.memory_mode = memory_mode
         self.initial_stack = None

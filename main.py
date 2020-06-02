@@ -9,31 +9,32 @@ from openpyxl import load_workbook
 
 start_hour = 7
 no_stations = 200
-branching = 5
-subproblem_scenarios = 5
+branching = 1
+subproblem_scenarios = 3
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
 
 
-def get_weight_combination():
-    # W_V, W_R, W_D, W_VN, W_VL
-    weights = list()
+def get_criticality_weights():
+    # w_drive, w_dev, w_viol, w_flat
     vals = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    weights = list()
     for val1 in vals:
-        W_V = val1
+        w_drive = val1
         for val2 in vals:
-            if W_V + val2 <= 1:
-                W_R = val2
+            if w_drive + val2 <= 1:
+                w_dev = val2
             else:
-                W_R = 0
-            W_D = 1 - W_R - W_V
+                break
             for val3 in vals:
-                W_VN = val3
-                W_VL = 1 - W_VN
-                weights.append((W_V, W_R, W_D, W_VN, W_VL))
-    w = list(set(tuple(val) for val in weights))
-    return w
+                if w_drive + w_dev + val3 <= 1:
+                    w_viol = val3
+                else:
+                    break
+                w_flat = 1 - w_drive - w_dev - w_viol
+                weights.append((w_drive, w_dev, w_viol, w_flat))
+    return weights
 
 
 def get_weight_combination_reduced():
@@ -59,11 +60,11 @@ def get_weight_combination_reduced():
 
 
 def weight_analysis(choice):
-    all_sets = get_weight_combination_reduced()
+    all_sets = get_criticality_weights()
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating 10 scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(2)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(1)]
 
     # Create excel writer
     writer = pd.ExcelWriter("Output/output_weights_" + choice + ".xlsx", engine='openpyxl')
@@ -86,7 +87,7 @@ def weight_analysis(choice):
             v = Vehicle(init_battery_load=40, init_charged_bikes=20, init_flat_bikes=0, current_station=stations[0],
                           id=0)
             sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios,
-                                  trigger_start_stack=init_stack, memory_mode=True, weights=all_sets[i])
+                                  trigger_start_stack=init_stack, memory_mode=True, crit_weights=all_sets[i])
             sim_env.run_simulation()
             save_weight_output(i+1, j+1, sim_env, base_viol[j].total_starvations, base_viol[j].total_congestions, writer)
 

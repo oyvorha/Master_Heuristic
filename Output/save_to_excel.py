@@ -25,11 +25,11 @@ def save_time_output(no_stations, branching, scenarios, no_vehicles, time, write
 
 
 def save_weight_output(set_id, scenario, env, base_s, base_c, writer):
-    df = pd.DataFrame(columns=['Weight set', 'W_V', 'W_R', 'W_D', 'W_VN', 'W_VL', 'Scenario', 'Total_requests',
+    df = pd.DataFrame(columns=['Weight set', 'W_drive', 'W_dev', 'W_viol', 'W_net', 'Scenario', 'Total_requests',
                                'Base starvations', 'Base congestions', 'Starvations', 'Congestions'])
 
-    new_row = {'Weight set': set_id, 'W_V': env.weights[0], 'W_R': env.weights[1], 'W_D': env.weights[2],
-               'W_VN': env.weights[3], 'W_VL': env.weights[4], 'Scenario': scenario,
+    new_row = {'Weight set': set_id, 'W_drive': env.crit_weights[0], 'W_dev': env.crit_weights[1], 'W_viol': env.crit_weights[2],
+               'W_net': env.crit_weights[3], 'Scenario': scenario,
                'Total_requests': env.total_gen_trips, 'Base starvations': base_s, 'Base congestions': base_c,
                'Starvations': env.total_starvations, 'Congestions': env.total_congestions}
 
