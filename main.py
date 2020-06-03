@@ -126,7 +126,6 @@ def strategy_analysis(scen, veh):
                                  greedy=True)
         sim_greedy.run_simulation()
 
-        """
         reset_stations(stations)
         init_crit_stack = [copy.copy(trip) for trip in sc]
         vehicles_crit = [copy.copy(veh) for veh in vehicles]
@@ -134,13 +133,13 @@ def strategy_analysis(scen, veh):
                                subproblem_scenarios, trigger_start_stack=init_crit_stack, memory_mode=True,
                                criticality=False)
         sim_crit.run_simulation()
-        """
 
         reset_stations(stations)
         init_heur_stack = [copy.copy(trip) for trip in sc]
         vehicles_heur = [copy.copy(veh) for veh in vehicles]
         sim_heur = Environment(start_hour, simulation_time, stations, vehicles_heur, branching,
-                                 subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True)
+                                 subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
+                               criticality=True)
         sim_heur.run_simulation()
         save_comparison_output(scenario, sim_heur, sim_base.total_starvations, sim_base.total_congestions,
                                sim_greedy.total_starvations, sim_greedy.total_congestions, writer)
@@ -186,7 +185,7 @@ if __name__ == '__main__':
     if choice == 'w1':
         weight_analysis(choice)
     elif choice == 'c':
-        scenarios = input('Number of scenarios:')
+        scenarios = input('Number of days:')
         vehicles = input('Number of vehicles:')
         strategy_analysis(int(scenarios), int(vehicles))
     elif choice == 'fs':
