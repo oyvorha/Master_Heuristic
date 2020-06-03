@@ -6,6 +6,7 @@ def run_master_model(parameters):
     try:
         m = Model("Heuristic Master")
         m.setParam('TimeLimit', 60 * 60)
+        m.setParam('OutputFlag', False)
 
         # ------ SETS -----------------------------------------------------------------------------
         Stations = parameters.stations

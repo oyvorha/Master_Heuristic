@@ -7,7 +7,7 @@ def run_model(parameters):
 
     try:
         m = Model("Heuristic")
-        m.setParam('TimeLimit', 60 * 60)
+        m.setParam('OutputFlag', False)
 
         # ------ SETS -----------------------------------------------------------------------------
         Stations = parameters.stations

@@ -97,6 +97,10 @@ def strategy_analysis(scen, veh):
     book = load_workbook("Output/output.xlsx")
     writer.book = book
 
+    writer2 = pd.ExcelWriter("Output/runtime.xlsx", engine='openpyxl')
+    book2 = load_workbook("Output/runtime.xlsx")
+    writer2.book = book2
+
     vehicles = list()
     for i in range(veh):
         vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0,
