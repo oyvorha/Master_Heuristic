@@ -41,7 +41,7 @@ class Station:
         self.total_starvations = 0
         self.total_congestions = 0
 
-    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=50, max_time=1000):
+    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=10, max_time=1000):
         closest_stations = list()
         for station in station_list:
             if station.id not in tabu_list:
