@@ -119,6 +119,10 @@ class Station:
             if t_starv > 0:
                 time_to_starvation = t_starv
         time_to_violation = min(time_to_starvation, time_to_congestion)
+        if (vehicle.current_station.current_charged_bikes - vehicle.current_station.get_ideal_state(
+                hour)) > 0 and (self.incoming_flat_bike_rate[hour] + self.incoming_charged_bike_rate[hour] -
+                 self.demand_per_hour[hour]) > 0 and first_station and self.current_charged_bikes > self.get_ideal_state(hour):
+            return -10000
         # ------- Deviation at time horizon  -------
         # Starving station
         if self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] > 0:
@@ -126,13 +130,13 @@ class Station:
                     self.incoming_charged_bike_rate[hour]) * min(time_horizon, time_to_starvation)
             if self.get_ideal_state(hour) - charged_at_t > 0 and first_station and (vehicle.current_charged_bikes < 2 and (
                     vehicle.current_batteries < 2 or self.current_flat_bikes < 2)):
-                return 0
+                return -10000
         # Congesting station
         elif self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] < 0:
             charged_at_t = self.current_charged_bikes + (self.incoming_charged_bike_rate[hour]
                     - self.demand_per_hour[hour]) * min(time_horizon, time_to_congestion)
             if self.available_parking() == 0 and first_station and vehicle.available_bike_capacity() < 2:
-                return 0
+                return -10000
         else:
             charged_at_t = self.current_charged_bikes
         dev = abs(self.get_ideal_state(hour) - charged_at_t)
