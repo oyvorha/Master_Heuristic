@@ -93,7 +93,7 @@ def weight_analysis(choice):
 
 def strategy_analysis(scen, veh):
     # Create excel writer
-    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
+    writer = pd.ExcelWriter("Output/output_"+str(veh)+".xlsx", engine='openpyxl')
     book = load_workbook("Output/output.xlsx")
     writer.book = book
 
