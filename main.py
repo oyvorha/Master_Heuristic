@@ -158,10 +158,10 @@ def first_step():
     sim_env.run_simulation()
 
 
-def runtime_analysis():
+def runtime_analysis(run):
     # Create excel writer
-    writer = pd.ExcelWriter("Output/runtime.xlsx", engine='openpyxl')
-    book = load_workbook("Output/runtime.xlsx")
+    writer = pd.ExcelWriter("Output/runtime_"+run+".xlsx", engine='openpyxl')
+    book = load_workbook("Output/runtime_"+run+".xlsx")
     writer.book = book
     stations = generate_pattern_stations(200)
     for sub_sc in [1, 10, 20, 30]:
@@ -232,6 +232,7 @@ if __name__ == '__main__':
     elif choice == 'fs':
         first_step()
     elif choice == 'r':
-        runtime_analysis()
+        run = input('run number:')
+        runtime_analysis(run)
     else:
         print("No analysis")
