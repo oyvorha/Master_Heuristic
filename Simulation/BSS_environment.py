@@ -38,13 +38,31 @@ class Environment:
         self.total_starvations = 0
         self.total_congestions = 0
 
+        self.total_starvations_per_hour = list()
+        self.total_congestions_per_hour = list()
+
         self.vehicle_vis = {v.id: [[v.current_station.id], [], [], []] for v in self.vehicles}
         self.print_number_of_bikes()
 
     def run_simulation(self):
+        record_trigger = self.current_time + 60
         while self.current_time < self.simulation_stop:
+            if self.current_time >= record_trigger:
+                record_trigger += 60
+                self.update_violations()
+                self.total_starvations_per_hour.append(self.total_starvations)
+                self.total_congestions_per_hour.append(self.total_congestions)
             self.event_trigger()
         self.end_simulation()
+
+    def update_violations(self):
+        temp_starve = 0
+        temp_cong = 0
+        for st in self.stations:
+            temp_starve += st.total_starvations
+            temp_cong += st.total_congestions
+        self.total_starvations = temp_starve
+        self.total_congestions = temp_cong
 
     def set_up_system(self):
         for veh1 in self.vehicles:
@@ -102,9 +120,9 @@ class Environment:
         return init_stack
 
     def end_simulation(self):
-        for st in self.stations:
-            self.total_congestions += st.total_congestions
-            self.total_starvations += st.total_starvations
+        self.update_violations()
+        self.total_starvations_per_hour.append(self.total_starvations)
+        self.total_congestions_per_hour.append(self.total_congestions)
         self.visualize_system()
         self.status()
 

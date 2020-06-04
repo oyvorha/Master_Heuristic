@@ -79,3 +79,25 @@ def save_first_step_solution(instance, scenarios, batteries, net_charged, net_fl
     else:
         weight_df.to_excel(writer, index=False, sheet_name='First_solution')
         writer.save()
+
+
+def save_vehicle_output(day, no_veh, sim_heur, base_env, writer):
+    df = pd.DataFrame(columns=['Day', 'Total_requests', 'Vehicles', 'Hour', 'Base starvations', 'Base congestions',
+                               'Heuristic starvations', 'Heuristic congestions'])
+
+    for hour in range(len(base_env.total_starvations_per_hour)):
+        new_row = {'Day': day, 'Total_requests': sim_heur.total_gen_trips, 'Vehicles': no_veh, 'Hour': hour+7,
+                   'Base starvations': base_env.total_starvations_per_hour[hour], 'Base congestions':
+                       base_env.total_congestions_per_hour[hour], 'Heuristic starvations':
+                       sim_heur.total_starvations_per_hour[hour], 'Heuristic congestions':
+                       sim_heur.total_congestions_per_hour[hour]}
+
+        weight_df = df.append(new_row, ignore_index=True)
+
+        if 'Vehicle' in writer.book.sheetnames:
+            start_row = writer.sheets['Vehicle'].max_row
+            weight_df.to_excel(writer, startrow=start_row, index=False, header=False, sheet_name='Vehicle')
+            writer.save()
+        else:
+            weight_df.to_excel(writer, index=False, sheet_name='Vehicle')
+            writer.save()
