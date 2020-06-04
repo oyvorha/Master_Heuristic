@@ -109,12 +109,14 @@ def strategy_analysis(scen, veh):
     scenario = 1
     for sc in scenarios:
         reset_stations(stations)
+        # Base
         init_base_stack = [copy.copy(trip) for trip in sc]
         sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
                                trigger_start_stack=init_base_stack, memory_mode=True)
         sim_base.run_simulation()
         reset_stations(stations)
 
+        # Greedy
         init_greedy_stack = [copy.copy(trip) for trip in sc]
         vehicles_greedy = [copy.copy(veh) for veh in vehicles]
         sim_greedy = Environment(start_hour, simulation_time, stations, vehicles_greedy, branching,
@@ -122,6 +124,7 @@ def strategy_analysis(scen, veh):
                                  greedy=True)
         sim_greedy.run_simulation()
 
+        # Criticality off
         reset_stations(stations)
         init_crit_stack = [copy.copy(trip) for trip in sc]
         vehicles_crit = [copy.copy(veh) for veh in vehicles]
@@ -130,6 +133,7 @@ def strategy_analysis(scen, veh):
                                criticality=False)
         sim_crit.run_simulation()
 
+        # Criticality on
         reset_stations(stations)
         init_heur_stack = [copy.copy(trip) for trip in sc]
         vehicles_heur = [copy.copy(veh) for veh in vehicles]
