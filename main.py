@@ -10,14 +10,14 @@ from openpyxl import load_workbook
 start_hour = 7
 no_stations = 200
 branching = 7
-subproblem_scenarios = 10
+subproblem_scenarios = 5
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
 
 
 def get_criticality_weights():
-    # w_drive, w_dev, w_viol, w_flat
+    # w_drive, w_dev, w_viol, w_net
     vals = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
     weights = list()
     for val1 in vals:
@@ -130,6 +130,7 @@ def strategy_analysis(scen, veh):
                                subproblem_scenarios, trigger_start_stack=init_crit_stack, memory_mode=True,
                                criticality=False)
         sim_crit.run_simulation()
+        """
 
         reset_stations(stations)
         init_heur_stack = [copy.copy(trip) for trip in sc]
