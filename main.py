@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 
 start_hour = 7
 no_stations = 200
-branching = 7
+branching = 5
 subproblem_scenarios = 5
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
