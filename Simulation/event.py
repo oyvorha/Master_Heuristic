@@ -37,7 +37,10 @@ class VehicleEvent(Event):
 
     def greedy_solve(self):
         hour = self.env.current_time // 60
-        next_st_candidates = self.vehicle.current_station.get_candidate_stations(self.env.stations)
+        no_vehicles = len(self.env.vehicles)
+        splits = len(self.env.stations) // no_vehicles
+        next_st_candidates = self.vehicle.current_station.get_candidate_stations(
+            self.env.stations[self.vehicle.id*splits:(self.vehicle.id+1)*splits] + [self.env.stations[4]])
         next_station = next_st_candidates[random.randint(0, len(next_st_candidates) - 1)][0]
         swaps = min(self.vehicle.current_batteries, self.vehicle.current_station.current_flat_bikes)
         self.vehicle.current_batteries -= swaps
