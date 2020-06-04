@@ -200,12 +200,12 @@ def vehicle_analysis(days, veh):
         sim_base.run_simulation()
         base_envs.append(sim_base)
 
-    for n_veh in range(1, veh+1):
-        vehicles = list()
-        for k in range(n_veh):
-            vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
-                                    current_station=stations[k], id=k))
-        for d in range(len(days)):
+    for d in range(len(days)):
+        for n_veh in range(1, veh+1):
+            vehicles = list()
+            for k in range(n_veh):
+                vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
+                                        current_station=stations[k], id=k))
             reset_stations(stations)
             init_heur_stack = [copy.copy(trip) for trip in days[d]]
             vehicles_heur = [copy.copy(veh) for veh in vehicles]
