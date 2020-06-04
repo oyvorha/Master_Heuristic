@@ -122,7 +122,6 @@ def strategy_analysis(scen, veh):
                                  greedy=True)
         sim_greedy.run_simulation()
 
-        """
         reset_stations(stations)
         init_crit_stack = [copy.copy(trip) for trip in sc]
         vehicles_crit = [copy.copy(veh) for veh in vehicles]
@@ -130,7 +129,6 @@ def strategy_analysis(scen, veh):
                                subproblem_scenarios, trigger_start_stack=init_crit_stack, memory_mode=True,
                                criticality=False)
         sim_crit.run_simulation()
-        """
 
         reset_stations(stations)
         init_heur_stack = [copy.copy(trip) for trip in sc]
@@ -140,7 +138,8 @@ def strategy_analysis(scen, veh):
                                criticality=True)
         sim_heur.run_simulation()
         save_comparison_output(scenario, sim_heur, sim_base.total_starvations, sim_base.total_congestions,
-                               sim_greedy.total_starvations, sim_greedy.total_congestions, writer)
+                               sim_greedy.total_starvations, sim_greedy.total_congestions, writer,
+                               crit_off_c=sim_crit.total_congestions, crit_off_s=sim_crit.total_starvations)
         scenario += 1
 
 
