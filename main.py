@@ -1,6 +1,6 @@
 from Input.preprocess import generate_all_stations, reset_stations, generate_pattern_stations
 from vehicle import Vehicle
-from Output.save_to_excel import save_weight_output, save_comparison_output, save_time_output, save_vehicle_output
+from Output.save_to_excel import *
 from Simulation.BSS_environment import Environment
 import copy
 import pandas as pd
@@ -216,6 +216,46 @@ def vehicle_analysis(days, veh, run):
             save_vehicle_output(d+1, n_veh, sim_heur, base_envs[d], writer)
 
 
+def fleet_analysis(days, run):
+    env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
+
+    # Generating days
+    days = [env.generate_trips(simulation_time // 60, gen=True) for i in range(days)]
+
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/runtime_" + run + ".xlsx", engine='openpyxl')
+    book = load_workbook("Output/runtime_" + run + ".xlsx")
+    writer.book = book
+
+    base_envs = list()
+    for j in range(len(days)):
+        reset_stations(stations)
+        init_base_stack = [copy.copy(trip) for trip in days[j]]
+        sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
+                               trigger_start_stack=init_base_stack, memory_mode=True)
+        sim_base.run_simulation()
+        base_envs.append(sim_base)
+
+    for d in range(len(days)):
+        for n_bat in range(5):
+            vehicles = list()
+            for k in range(n_bat):
+                vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
+                                        current_station=stations[k], id=k, bike_cap=0))
+            for n_rb in range(5):
+                for l in range(n_rb):
+                    vehicles.append(Vehicle(init_battery_load=0, init_charged_bikes=0, init_flat_bikes=0,
+                                        current_station=stations[l+n_bat], id=l+n_bat, bat_cap=0))
+                reset_stations(stations)
+                init_heur_stack = [copy.copy(trip) for trip in days[d]]
+                vehicles_heur = [copy.copy(veh) for veh in vehicles]
+                sim_heur = Environment(start_hour, simulation_time, stations, vehicles_heur, branching,
+                                       subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
+                                       criticality=True)
+                sim_heur.run_simulation()
+                save_fleet_output(d+1, n_rb, n_bat, sim_heur, base_envs[d], writer)
+
+
 if __name__ == '__main__':
     print("w: weight analysis, c: strategy comparison, r: runtime analysis, fs: first step analysis, v: vehicles")
     choice = input('Choose action: ')
@@ -226,6 +266,10 @@ if __name__ == '__main__':
         vehicles = input('Number of vehicles:')
         run = input('run number:')
         vehicle_analysis(int(scenarios), int(vehicles), run)
+    elif choice == 'vf':
+        days = input('Number of days:')
+        run = input('run number:')
+        fleet_analysis(int(days), run)
     elif choice == 'c':
         days = input('Number of days:')
         vehicles = input('Number of vehicles:')
