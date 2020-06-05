@@ -9,8 +9,8 @@ from openpyxl import load_workbook
 
 start_hour = 7
 no_stations = 200
-branching = 5
-subproblem_scenarios = 5
+branching = 10
+subproblem_scenarios = 1
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
@@ -180,15 +180,15 @@ def runtime_analysis(run):
                     reset_stations(stations)
 
 
-def vehicle_analysis(days, veh):
+def vehicle_analysis(days, veh, run):
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating days
     days = [env.generate_trips(simulation_time // 60, gen=True) for i in range(days)]
 
     # Create excel writer
-    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
-    book = load_workbook("Output/output.xlsx")
+    writer = pd.ExcelWriter("Output/runtime_" + run + ".xlsx", engine='openpyxl')
+    book = load_workbook("Output/runtime_" + run + ".xlsx")
     writer.book = book
 
     base_envs = list()
@@ -224,7 +224,8 @@ if __name__ == '__main__':
     elif choice == 'v':
         scenarios = input('Number of days:')
         vehicles = input('Number of vehicles:')
-        vehicle_analysis(int(scenarios), int(vehicles))
+        run = input('run number:')
+        vehicle_analysis(int(scenarios), int(vehicles), run)
     elif choice == 'c':
         days = input('Number of days:')
         vehicles = input('Number of vehicles:')

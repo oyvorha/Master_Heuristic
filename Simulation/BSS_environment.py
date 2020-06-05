@@ -53,7 +53,6 @@ class Environment:
                 self.total_starvations_per_hour.append(self.total_starvations)
                 self.total_congestions_per_hour.append(self.total_congestions)
             self.event_trigger()
-            break
         self.end_simulation()
 
     def update_violations(self):

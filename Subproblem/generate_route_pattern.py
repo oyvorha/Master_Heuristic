@@ -98,7 +98,7 @@ class GenerateRoutePattern:
                     finished_routes.append(col)
                 construction_routes.remove(col)
                 if self.init_branching > 4 and self.dynamic:
-                    self.init_branching = 3
+                    self.init_branching = 1
                 elif self.init_branching > 1 and self.dynamic:
                     self.init_branching = 1
         self.finished_gen_routes = finished_routes
