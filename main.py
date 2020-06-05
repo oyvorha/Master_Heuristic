@@ -94,7 +94,7 @@ def weight_analysis(choice):
 def strategy_analysis(scen, veh):
     # Create excel writer
     writer = pd.ExcelWriter("Output/output_"+str(veh)+".xlsx", engine='openpyxl')
-    book = load_workbook("Output/output.xlsx")
+    book = load_workbook("Output/output"+str(veh)+".xlsx")
     writer.book = book
 
     vehicles = list()
@@ -237,12 +237,12 @@ def fleet_analysis(days, run):
         base_envs.append(sim_base)
 
     for d in range(len(days)):
-        for n_bat in range(5):
+        for n_bat in range(6):
             vehicles = list()
             for k in range(n_bat):
                 vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
                                         current_station=stations[k], id=k, bike_cap=0))
-            for n_rb in range(5):
+            for n_rb in range(6):
                 veh1 = list()
                 veh1 += vehicles
                 for l in range(n_rb):
