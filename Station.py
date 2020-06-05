@@ -98,6 +98,8 @@ class Station:
     def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev, w_net,
                               first_station):
         # ------- Time to violation -------
+        if vehicle.battery_capacity == 0 and self.depot:
+            return -100000
         if self.depot and vehicle.current_batteries < 2:
             return 100000
         time_to_starvation = 10000
