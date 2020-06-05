@@ -47,7 +47,7 @@ class Environment:
     def run_simulation(self):
         record_trigger = self.current_time + 60
         while self.current_time < self.simulation_stop:
-            if self.current_time >= record_trigger and self.greedy:
+            if self.current_time >= record_trigger:
                 record_trigger += 60
                 self.update_violations()
                 self.total_starvations_per_hour.append(self.total_starvations)
