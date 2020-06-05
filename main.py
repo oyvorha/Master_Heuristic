@@ -237,12 +237,12 @@ def fleet_analysis(days, run):
         base_envs.append(sim_base)
 
     for d in range(len(days)):
-        for n_bat in range(6):
+        for n_bat in range(1, 6):
             vehicles = list()
             for k in range(n_bat):
                 vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
                                         current_station=stations[k], id=k, bike_cap=0))
-            for n_rb in range(6):
+            for n_rb in range(1, 6):
                 veh1 = list()
                 veh1 += vehicles
                 for l in range(n_rb):
@@ -250,10 +250,11 @@ def fleet_analysis(days, run):
                     if l+n_bat == 4:
                         index = 15
                     veh1.append(Vehicle(init_battery_load=0, init_charged_bikes=0, init_flat_bikes=0,
-                                        current_station=stations[index], id=index, bat_cap=0))
+                                        current_station=stations[index], id=l+n_bat, bat_cap=0))
                 reset_stations(stations)
                 init_heur_stack = [copy.copy(trip) for trip in days[d]]
                 vehicles_heur = [copy.copy(veh) for veh in veh1]
+                print([[veh.id, veh.current_station.id] for veh in vehicles_heur])
                 sim_heur = Environment(start_hour, simulation_time, stations, vehicles_heur, branching,
                                        subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                        criticality=True)
