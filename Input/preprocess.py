@@ -112,6 +112,12 @@ def reset_stations(stations):
         station.current_flat_bikes = station.init_flat
 
 
+def reset_cap_stations(stations, multiplier):
+    reset_stations(stations)
+    for st in stations:
+        st.station_cap = round(st.station_init_cap * multiplier, 0)
+
+
 def get_index(station_id, stations):
     for i in range(len(stations)):
         if stations[i].id == station_id:

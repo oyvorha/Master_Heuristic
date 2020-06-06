@@ -1,4 +1,4 @@
-from Input.preprocess import generate_all_stations, reset_stations, generate_pattern_stations
+from Input.preprocess import generate_all_stations, reset_stations, generate_pattern_stations, reset_cap_stations
 from vehicle import Vehicle
 from Output.save_to_excel import *
 from Simulation.BSS_environment import Environment
@@ -262,6 +262,41 @@ def fleet_analysis(days, run):
                 save_fleet_output(d+1, n_rb, n_bat, sim_heur, base_envs[d], writer)
 
 
+def station_cap(no_days, run):
+    env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
+
+    # Generating days
+    days = [env.generate_trips(simulation_time // 60, gen=True) for i in range(no_days)]
+
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/runtime_" + run + ".xlsx", engine='openpyxl')
+    book = load_workbook("Output/runtime_" + run + ".xlsx")
+    writer.book = book
+
+    vehicles = list()
+    for i in range(5):
+        vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
+                                current_station=stations[i], id=i))
+
+    for d in range(no_days):
+        for m in [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75]:
+            reset_cap_stations(stations, m)
+            init_base_stack = [copy.copy(trip) for trip in days[d]]
+            sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
+                                   trigger_start_stack=init_base_stack, memory_mode=True)
+            sim_base.run_simulation()
+
+            reset_cap_stations(stations, m)
+            init_heur_stack = [copy.copy(trip) for trip in days[d]]
+            vehicles_heur = [copy.copy(veh) for veh in vehicles]
+            sim_heur = Environment(start_hour, simulation_time, stations, vehicles_heur, branching,
+                                   subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
+                                   criticality=True)
+            sim_heur.run_simulation()
+
+            save_station_cap_output(d+1, sim_heur, sim_base, m, writer)
+
+
 if __name__ == '__main__':
     print("w: weight analysis, c: strategy comparison, r: runtime analysis, fs: first step analysis, v: vehicles")
     choice = input('Choose action: ')
@@ -272,6 +307,10 @@ if __name__ == '__main__':
         vehicles = input('Number of vehicles:')
         run = input('run number:')
         vehicle_analysis(int(scenarios), int(vehicles), run)
+    elif choice == 'sc':
+        days = input('Number of days:')
+        run = input('run number:')
+        station_cap(int(days), run)
     elif choice == 'vf':
         days = input('Number of days:')
         run = input('run number:')

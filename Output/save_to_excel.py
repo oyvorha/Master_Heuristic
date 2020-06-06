@@ -124,3 +124,23 @@ def save_fleet_output(day, no_rb_veh, no_bat_veh, sim_heur, base_env, writer):
         else:
             weight_df.to_excel(writer, index=False, sheet_name='Fleet')
             writer.save()
+
+
+def save_station_cap_output(day, sim_heur, base, station_cap, writer):
+    df = pd.DataFrame(columns=['Day', 'Total_requests', 'Station capacity', 'Base starvations', 'Base congestions',
+                               'Heuristic starvations', 'Heuristic congestions'])
+
+    new_row = {'Day': day, 'Total_requests': sim_heur.total_gen_trips, 'Station capacity': station_cap,
+               'Base starvations': base.total_starvations, 'Base congestions': base.total_congestions,
+               'Heuristic starvations': sim_heur.total_starvations,
+               'Heuristic congestions': sim_heur.total_congestions}
+
+    weight_df = df.append(new_row, ignore_index=True)
+
+    if 'Compare_cap_strategies' in writer.book.sheetnames:
+        start_row = writer.sheets['Compare_cap_strategies'].max_row
+        weight_df.to_excel(writer, startrow=start_row, index=False, header=False, sheet_name='Compare_cap_strategies')
+        writer.save()
+    else:
+        weight_df.to_excel(writer, index=False, sheet_name='Compare_cap_strategies')
+        writer.save()

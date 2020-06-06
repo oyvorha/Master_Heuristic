@@ -15,6 +15,7 @@ class Station:
         self.charging_station = charging
         self.battery_rate = battery_rate
         self.depot = depot
+        self.station_init_cap = max_capacity
 
         # The following varies with scenario
         self.incoming_charged_bike_rate = dict()
