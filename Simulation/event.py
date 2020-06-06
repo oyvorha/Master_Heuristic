@@ -113,6 +113,6 @@ class VehicleEvent(Event):
         if station.charging_station:  # If charging station, make flat unload battery unload immediately
             station.change_charged_load(-Q_FCL + Q_FCU)
         else:
-            station.change_flat_load(-Q_FCL + Q_FCU)
+            station.change_flat_load(-Q_FCL + Q_FCU - Q_B)
         if station.depot:
             vehicle.current_batteries = vehicle.battery_capacity

@@ -278,7 +278,7 @@ def station_cap(no_days, run):
                                 current_station=stations[i], id=i))
 
     for d in range(no_days):
-        for m in [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4]:
+        for m in [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3]:
             reset_cap_stations(stations, m)
             init_base_stack = [copy.copy(trip) for trip in days[d]]
             sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
