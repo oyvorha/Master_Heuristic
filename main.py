@@ -142,7 +142,7 @@ def strategy_analysis(scen, veh, run):
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                criticality=True)
         sim_heur.run_simulation()
-        save_vehicle_output(scenario, veh, sim_heur, sim_base, writer, crit_env=sim_crit)
+        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_greedy, writer, crit_env=sim_crit)
         scenario += 1
 
 
