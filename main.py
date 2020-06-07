@@ -212,7 +212,7 @@ def vehicle_analysis(days, veh, run):
                                    subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                    criticality=True)
             sim_heur.run_simulation()
-            save_vehicle_output(d+1, n_veh, sim_heur, base_envs[d], writer)
+            save_vary_vehicle_output(d+1, n_veh, sim_heur, base_envs[d], writer)
 
 
 def fleet_analysis(days, run):
