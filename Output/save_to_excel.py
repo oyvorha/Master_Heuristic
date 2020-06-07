@@ -81,16 +81,19 @@ def save_first_step_solution(instance, scenarios, batteries, net_charged, net_fl
         writer.save()
 
 
-def save_vehicle_output(day, no_veh, sim_heur, base_env, writer):
+def save_vehicle_output(day, no_veh, sim_heur, base_env, writer, crit_env=None):
     df = pd.DataFrame(columns=['Day', 'Total_requests', 'Vehicles', 'Hour', 'Base starvations', 'Base congestions',
-                               'Heuristic starvations', 'Heuristic congestions'])
+                               'Heuristic starvations', 'Heuristic congestions', 'Crit-off starvations',
+                               'Crit-off congestions'])
 
     for hour in range(len(base_env.total_starvations_per_hour)):
         new_row = {'Day': day, 'Total_requests': sim_heur.total_gen_trips, 'Vehicles': no_veh, 'Hour': hour+7,
                    'Base starvations': base_env.total_starvations_per_hour[hour], 'Base congestions':
                        base_env.total_congestions_per_hour[hour], 'Heuristic starvations':
                        sim_heur.total_starvations_per_hour[hour], 'Heuristic congestions':
-                       sim_heur.total_congestions_per_hour[hour]}
+                       sim_heur.total_congestions_per_hour[hour], 'Crit-off starvations':
+                       crit_env.total_starvations_per_hour[hour],  'Crit-off congestions':
+                       crit_env.total_congestions_per_hour[hour]}
 
         weight_df = df.append(new_row, ignore_index=True)
 

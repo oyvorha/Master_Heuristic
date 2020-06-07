@@ -91,15 +91,16 @@ def weight_analysis(choice):
             save_weight_output(i+1, j+1, sim_env, base_viol[j].total_starvations, base_viol[j].total_congestions, writer)
 
 
-def strategy_analysis(scen, veh):
+def strategy_analysis(scen, veh, run):
     # Create excel writer
-    writer = pd.ExcelWriter("Output/output_"+str(veh)+".xlsx", engine='openpyxl')
-    book = load_workbook("Output/output_"+str(veh)+".xlsx")
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/runtime_" + run + ".xlsx", engine='openpyxl')
+    book = load_workbook("Output/runtime_" + run + ".xlsx")
     writer.book = book
 
     vehicles = list()
     for i in range(veh):
-        vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0,
+        vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
                                 current_station=stations[i], id=i))
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
@@ -141,9 +142,7 @@ def strategy_analysis(scen, veh):
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                criticality=True)
         sim_heur.run_simulation()
-        save_comparison_output(scenario, sim_heur, sim_base.total_starvations, sim_base.total_congestions,
-                               sim_greedy.total_starvations, sim_greedy.total_congestions, writer,
-                               crit_off_c=sim_crit.total_congestions, crit_off_s=sim_crit.total_starvations)
+        save_vehicle_output(scenario, veh, sim_heur, sim_base, writer, crit_env=sim_crit)
         scenario += 1
 
 
@@ -317,7 +316,8 @@ if __name__ == '__main__':
     elif choice == 'c':
         days = input('Number of days:')
         vehicles = input('Number of vehicles:')
-        strategy_analysis(int(days), int(vehicles))
+        run = input('Run number:')
+        strategy_analysis(int(days), int(vehicles), run)
     elif choice == 'fs':
         first_step()
     elif choice == 'r':
