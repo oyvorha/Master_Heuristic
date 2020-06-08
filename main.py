@@ -110,11 +110,11 @@ def strategy_analysis(scen, veh, run):
         for st in stations:
             st.alfa = alfa
         for days in range(scen):
-            scenarios.append(env.generate_trips(simulation_time // 60, gen=True))
+            scenarios.append((env.generate_trips(simulation_time // 60, gen=True), alfa))
     # scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(1)]
 
     scenario = 1
-    for sc in scenarios:
+    for sc, a in scenarios:
         reset_stations(stations)
         # Base
         init_base_stack = [copy.copy(trip) for trip in sc]
@@ -150,7 +150,7 @@ def strategy_analysis(scen, veh, run):
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                criticality=True)
         sim_heur.run_simulation()
-        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_base, writer, crit_env=sim_crit, alfa=alfas[scenario-1])
+        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_base, writer, crit_env=sim_crit, alfa=a)
         scenario += 1
 
 
