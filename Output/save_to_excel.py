@@ -81,14 +81,14 @@ def save_first_step_solution(instance, scenarios, batteries, net_charged, net_fl
         writer.save()
 
 
-def save_vehicle_output(day, no_veh, sim_heur, base_env, sim_greedy, writer, crit_env=None):
-    df = pd.DataFrame(columns=['Day', 'Total_requests', 'Vehicles', 'Hour', 'Base starvations', 'Base congestions',
+def save_vehicle_output(day, no_veh, sim_heur, base_env, sim_greedy, writer, crit_env=None, alfa=1):
+    df = pd.DataFrame(columns=['Day', 'Total_requests', 'Alfa', 'Vehicles', 'Hour', 'Base starvations', 'Base congestions',
                                'Greedy starvations', 'Greedy congestions',
                                'Heuristic starvations', 'Heuristic congestions', 'Crit-off starvations',
                                'Crit-off congestions'])
 
     for hour in range(len(base_env.total_starvations_per_hour)):
-        new_row = {'Day': day, 'Total_requests': sim_heur.total_gen_trips, 'Vehicles': no_veh, 'Hour': hour+7,
+        new_row = {'Day': day, 'Total_requests': sim_heur.total_gen_trips, 'Alfa':alfa, 'Vehicles': no_veh, 'Hour': hour+7,
                    'Base starvations': base_env.total_starvations_per_hour[hour], 'Base congestions':
                        base_env.total_congestions_per_hour[hour],
                    'Greedy starvations': sim_greedy.total_starvations_per_hour[hour],

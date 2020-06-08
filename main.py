@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 start_hour = 7
 no_stations = 200
 branching = 10
-subproblem_scenarios = 1
+subproblem_scenarios = 10
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
@@ -93,7 +93,6 @@ def weight_analysis(choice):
 
 def strategy_analysis(scen, veh, run):
     # Create excel writer
-    # Create excel writer
     writer = pd.ExcelWriter("Output/runtime_" + run + ".xlsx", engine='openpyxl')
     book = load_workbook("Output/runtime_" + run + ".xlsx")
     writer.book = book
@@ -105,7 +104,14 @@ def strategy_analysis(scen, veh, run):
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(scen)]
+    scenarios = list()
+    alfas = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    for alfa in alfas:
+        for st in stations:
+            st.alfa = alfa
+        for days in range(scen):
+            scenarios.append(env.generate_trips(simulation_time // 60, gen=True))
+    # scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(1)]
 
     scenario = 1
     for sc in scenarios:
@@ -117,6 +123,7 @@ def strategy_analysis(scen, veh, run):
         sim_base.run_simulation()
         reset_stations(stations)
 
+        """
         # Greedy
         init_greedy_stack = [copy.copy(trip) for trip in sc]
         vehicles_greedy = [copy.copy(veh) for veh in vehicles]
@@ -124,6 +131,7 @@ def strategy_analysis(scen, veh, run):
                                  subproblem_scenarios, trigger_start_stack=init_greedy_stack, memory_mode=True,
                                  greedy=True)
         sim_greedy.run_simulation()
+        """
 
         # 1 subscenario
         reset_stations(stations)
@@ -134,7 +142,7 @@ def strategy_analysis(scen, veh, run):
                                criticality=True)
         sim_crit.run_simulation()
 
-        # Criticality on
+        # 10 subproblem
         reset_stations(stations)
         init_heur_stack = [copy.copy(trip) for trip in sc]
         vehicles_heur = [copy.copy(veh) for veh in vehicles]
@@ -142,7 +150,7 @@ def strategy_analysis(scen, veh, run):
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                criticality=True)
         sim_heur.run_simulation()
-        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_greedy, writer, crit_env=sim_crit)
+        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_base, writer, crit_env=sim_crit, alfa=alfas[scenario-1])
         scenario += 1
 
 

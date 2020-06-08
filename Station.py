@@ -7,7 +7,7 @@ class Station:
     def __init__(self, latitude=None, longitude=None, charged_load=None, flat_load=None, ideal_state=None,
                  charging=False, depot=False, dockgroup_id=None, next_station_probabilities=None,
                  station_travel_time=None, station_car_travel_time=None, name=None, actual_num_bikes=None,
-                 max_capacity=None, demand_per_hour=None, battery_rate=0):
+                 max_capacity=None, demand_per_hour=None, battery_rate=0, alfa=1):
         self.id = dockgroup_id
         self.latitude = latitude
         self.longitude = longitude
@@ -16,6 +16,7 @@ class Station:
         self.battery_rate = battery_rate
         self.depot = depot
         self.station_init_cap = max_capacity
+        self.alfa = alfa
 
         # The following varies with scenario
         self.incoming_charged_bike_rate = dict()
@@ -88,13 +89,13 @@ class Station:
         return next_prob/np.sum(next_prob)
 
     def get_outgoing_customer_rate(self, hour):
-        return self.demand_per_hour[hour]
+        return self.demand_per_hour[hour]*self.alfa
 
     def get_incoming_charged_rate(self, hour):
-        return self.incoming_charged_bike_rate[hour]
+        return self.incoming_charged_bike_rate[hour]*self.alfa
 
     def get_incoming_flat_rate(self, hour):
-        return self.incoming_flat_bike_rate[hour]
+        return self.incoming_flat_bike_rate[hour]*self.alfa
 
     def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev, w_net,
                               first_station):
