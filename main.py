@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 start_hour = 7
 no_stations = 200
 branching = 10
-subproblem_scenarios = 10
+subproblem_scenarios = 1
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True

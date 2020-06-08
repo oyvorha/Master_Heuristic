@@ -115,7 +115,7 @@ def reset_stations(stations):
 def reset_cap_stations(stations, multiplier):
     reset_stations(stations)
     for st in stations:
-        st.station_cap = round(st.station_init_cap * multiplier, 0)
+        st.current_charged_bikes = round(st.current_charged_bikes * multiplier, 0)
 
 
 def get_index(station_id, stations):
