@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 start_hour = 7
 no_stations = 200
 branching = 10
-subproblem_scenarios = 1
+subproblem_scenarios = 10
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
 stations[4].depot = True
@@ -125,13 +125,13 @@ def strategy_analysis(scen, veh, run):
                                  greedy=True)
         sim_greedy.run_simulation()
 
-        # Criticality off
+        # 1 subscenario
         reset_stations(stations)
         init_crit_stack = [copy.copy(trip) for trip in sc]
         vehicles_crit = [copy.copy(veh) for veh in vehicles]
         sim_crit = Environment(start_hour, simulation_time, stations, vehicles_crit, branching,
-                               subproblem_scenarios, trigger_start_stack=init_crit_stack, memory_mode=True,
-                               criticality=False)
+                               1, trigger_start_stack=init_crit_stack, memory_mode=True,
+                               criticality=True)
         sim_crit.run_simulation()
 
         # Criticality on

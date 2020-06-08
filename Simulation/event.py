@@ -41,7 +41,21 @@ class VehicleEvent(Event):
         splits = len(self.env.stations) // no_vehicles
         next_st_candidates = self.vehicle.current_station.get_candidate_stations(
             self.env.stations[self.vehicle.id*splits:(self.vehicle.id+1)*splits] + [self.env.stations[4]])
-        next_station = next_st_candidates[random.randint(0, len(next_st_candidates) - 1)][0]
+
+        # Choose next station
+        # Calculate criticality score for all stations
+        cand_scores = list()
+        for [st, time] in next_st_candidates:
+            first = True
+            driving_time = self.vehicle.current_station.get_station_car_travel_time(st.id)
+            score = st.get_criticality_score(self.vehicle, 25, hour,
+                                             driving_time, 0.2, 0.1, 0.5, 0.2, first)
+            cand_scores.append([st, driving_time, score])
+
+        # Sort candidates by criticality score
+        cand_scores = sorted(cand_scores, key=lambda l: l[2], reverse=True)
+
+        next_station = cand_scores[0][0]
         swaps = min(self.vehicle.current_batteries, self.vehicle.current_station.current_flat_bikes)
         self.vehicle.current_batteries -= swaps
         self.vehicle.current_station.current_flat_bikes -= swaps
@@ -70,7 +84,7 @@ class VehicleEvent(Event):
             self.vehicle.current_station.current_flat_bikes -= flat_load
             self.vehicle.current_flat_bikes += flat_load
         handling_time = (swaps + flat_load + flat_unload + bat_unload + bat_load) * Event.handling_time
-        driving_time = self.vehicle.current_station.get_station_car_travel_time(next_station.id)
+        driving_time = cand_scores[0][1]
         self.vehicle.current_station = next_station
         end_time = self.env.current_time + driving_time + handling_time + Event.parking_time
         self.env.trigger_stack.append(VehicleEvent(self.env.current_time, end_time, self.vehicle, self.env, self.greedy))
