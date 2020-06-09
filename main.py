@@ -133,6 +133,7 @@ def strategy_analysis(scen, veh, run):
         crit_env = Environment(start_hour, simulation_time, stations, vehicles_crit, branching,
                                subproblem_scenarios, trigger_start_stack=init_crit_stack, memory_mode=True,
                                criticality=False)
+        crit_env.run_simulation()
 
         # 10 subproblem
         reset_stations(stations)
