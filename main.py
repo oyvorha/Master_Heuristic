@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 
 start_hour = 7
 no_stations = 200
-branching = 10
+branching = 3
 subproblem_scenarios = 10
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
@@ -116,13 +116,23 @@ def strategy_analysis(scen, veh, run):
         sim_base.run_simulation()
         reset_stations(stations)
 
+        """
         # Greedy
         init_greedy_stack = [copy.copy(trip) for trip in sc]
         vehicles_greedy = [copy.copy(veh) for veh in vehicles]
         sim_greedy = Environment(start_hour, simulation_time, stations, vehicles_greedy, branching,
                                  subproblem_scenarios, trigger_start_stack=init_greedy_stack, memory_mode=True,
-                                 greedy=True)
+                                 greedy=True, writer=writer1)
         sim_greedy.run_simulation()
+        """
+
+        # Crit off
+        reset_stations(stations)
+        init_crit_stack = [copy.copy(trip) for trip in sc]
+        vehicles_crit = [copy.copy(veh) for veh in vehicles]
+        crit_env = Environment(start_hour, simulation_time, stations, vehicles_crit, branching,
+                               subproblem_scenarios, trigger_start_stack=init_crit_stack, memory_mode=True,
+                               criticality=False)
 
         # 10 subproblem
         reset_stations(stations)
@@ -132,7 +142,7 @@ def strategy_analysis(scen, veh, run):
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                criticality=True)
         sim_heur.run_simulation()
-        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_greedy, writer, sim_base, alfa=1)
+        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_base, writer, crit_env, alfa=1)
         scenario += 1
 
 
