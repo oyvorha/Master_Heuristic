@@ -104,17 +104,10 @@ def strategy_analysis(scen, veh, run):
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating scenarios
-    scenarios = list()
-    alfas = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-    for alfa in alfas:
-        for st in stations:
-            st.alfa = alfa
-        for days in range(scen):
-            scenarios.append((env.generate_trips(simulation_time // 60, gen=True), alfa))
-    # scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(1)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(1)]
 
     scenario = 1
-    for sc, a in scenarios:
+    for sc in scenarios:
         reset_stations(stations)
         # Base
         init_base_stack = [copy.copy(trip) for trip in sc]
@@ -123,7 +116,6 @@ def strategy_analysis(scen, veh, run):
         sim_base.run_simulation()
         reset_stations(stations)
 
-        """
         # Greedy
         init_greedy_stack = [copy.copy(trip) for trip in sc]
         vehicles_greedy = [copy.copy(veh) for veh in vehicles]
@@ -131,16 +123,6 @@ def strategy_analysis(scen, veh, run):
                                  subproblem_scenarios, trigger_start_stack=init_greedy_stack, memory_mode=True,
                                  greedy=True)
         sim_greedy.run_simulation()
-        """
-
-        # 1 subscenario
-        reset_stations(stations)
-        init_crit_stack = [copy.copy(trip) for trip in sc]
-        vehicles_crit = [copy.copy(veh) for veh in vehicles]
-        sim_crit = Environment(start_hour, simulation_time, stations, vehicles_crit, branching,
-                               1, trigger_start_stack=init_crit_stack, memory_mode=True,
-                               criticality=True)
-        sim_crit.run_simulation()
 
         # 10 subproblem
         reset_stations(stations)
@@ -150,7 +132,7 @@ def strategy_analysis(scen, veh, run):
                                  subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
                                criticality=True)
         sim_heur.run_simulation()
-        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_base, writer, crit_env=sim_crit, alfa=a)
+        save_vehicle_output(scenario, veh, sim_heur, sim_base, sim_greedy, writer, sim_base, alfa=1)
         scenario += 1
 
 

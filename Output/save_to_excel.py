@@ -81,7 +81,7 @@ def save_first_step_solution(instance, scenarios, batteries, net_charged, net_fl
         writer.save()
 
 
-def save_vehicle_output(day, no_veh, sim_heur, base_env, sim_greedy, writer, crit_env=None, alfa=1):
+def save_vehicle_output(day, no_veh, sim_heur, base_env, sim_greedy, writer, crit_env, alfa=1):
     df = pd.DataFrame(columns=['Day', 'Total_requests', 'Alfa', 'Vehicles', 'Hour', 'Base starvations', 'Base congestions',
                                'Greedy starvations', 'Greedy congestions',
                                'Heuristic starvations', 'Heuristic congestions', 'Crit-off starvations',

@@ -39,13 +39,14 @@ class VehicleEvent(Event):
         hour = self.env.current_time // 60
         no_vehicles = len(self.env.vehicles)
         splits = len(self.env.stations) // no_vehicles
-        next_st_candidates = self.vehicle.current_station.get_candidate_stations(
-            self.env.stations[self.vehicle.id*splits:(self.vehicle.id+1)*splits] + [self.env.stations[4]])
+        next_st_candidates = self.env.stations[self.vehicle.id*splits:(self.vehicle.id+1)*splits] + [self.env.stations[4]]
 
         # Choose next station
         # Calculate criticality score for all stations
         cand_scores = list()
-        for [st, time] in next_st_candidates:
+        for st in next_st_candidates:
+            if st.id == self.vehicle.current_station.id:
+                continue
             first = True
             driving_time = self.vehicle.current_station.get_station_car_travel_time(st.id)
             score = st.get_criticality_score(self.vehicle, 25, hour,
@@ -56,33 +57,38 @@ class VehicleEvent(Event):
         cand_scores = sorted(cand_scores, key=lambda l: l[2], reverse=True)
 
         next_station = cand_scores[0][0]
-        swaps = min(self.vehicle.current_batteries, self.vehicle.current_station.current_flat_bikes)
-        self.vehicle.current_batteries -= swaps
-        self.vehicle.current_station.current_flat_bikes -= swaps
-        self.vehicle.current_station.current_charged_bikes += swaps
-        bat_load, bat_unload, flat_load, flat_unload = (0, 0, 0, 0)
-        if self.vehicle.current_station.current_charged_bikes - self.vehicle.current_station.get_ideal_state(hour) > 0:
-            bat_load = max(0, min(self.vehicle.current_station.current_charged_bikes,
-                                  self.vehicle.available_bike_capacity(),
-                                  self.vehicle.current_station.current_charged_bikes - self.vehicle.current_station.get_ideal_state(
-                                      hour)))
-            self.vehicle.current_station.current_charged_bikes -= bat_load
-            self.vehicle.current_charged_bikes += bat_load
+
+        swaps, bat_load, bat_unload, flat_load, flat_unload = (0, 0, 0, 0, 0)
+        if self.vehicle.current_station.depot:
+            self.vehicle.current_batteries = self.vehicle.battery_capacity
         else:
-            bat_unload = max(0,
-                             min(self.vehicle.current_charged_bikes, self.vehicle.current_station.available_parking(),
-                                 self.vehicle.current_station.get_ideal_state(
-                                     hour) - self.vehicle.current_station.current_charged_bikes))
-            self.vehicle.current_station.current_charged_bikes += bat_unload
-            self.vehicle.current_charged_bikes -= bat_unload
-        if self.vehicle.current_station.charging_station:
-            flat_unload = min(self.vehicle.current_flat_bikes, self.vehicle.current_station.available_parking())
-            self.vehicle.current_station.current_charged_bikes += flat_unload
-            self.vehicle.current_flat_bikes -= flat_unload
-        else:
-            flat_load = min(self.vehicle.current_station.current_flat_bikes, self.vehicle.available_bike_capacity())
-            self.vehicle.current_station.current_flat_bikes -= flat_load
-            self.vehicle.current_flat_bikes += flat_load
+            swaps = min(self.vehicle.current_batteries, self.vehicle.current_station.current_flat_bikes)
+            self.vehicle.current_batteries -= swaps
+            self.vehicle.current_station.current_flat_bikes -= swaps
+            self.vehicle.current_station.current_charged_bikes += swaps
+            bat_load, bat_unload, flat_load, flat_unload = (0, 0, 0, 0)
+            if self.vehicle.current_station.current_charged_bikes - self.vehicle.current_station.get_ideal_state(hour) > 0:
+                bat_load = max(0, min(self.vehicle.current_station.current_charged_bikes,
+                                      self.vehicle.available_bike_capacity(),
+                                      self.vehicle.current_station.current_charged_bikes - self.vehicle.current_station.get_ideal_state(
+                                          hour)))
+                self.vehicle.current_station.current_charged_bikes -= bat_load
+                self.vehicle.current_charged_bikes += bat_load
+            else:
+                bat_unload = max(0,
+                                 min(self.vehicle.current_charged_bikes, self.vehicle.current_station.available_parking(),
+                                     self.vehicle.current_station.get_ideal_state(
+                                         hour) - self.vehicle.current_station.current_charged_bikes))
+                self.vehicle.current_station.current_charged_bikes += bat_unload
+                self.vehicle.current_charged_bikes -= bat_unload
+            if self.vehicle.current_station.charging_station:
+                flat_unload = min(self.vehicle.current_flat_bikes, self.vehicle.current_station.available_parking())
+                self.vehicle.current_station.current_charged_bikes += flat_unload
+                self.vehicle.current_flat_bikes -= flat_unload
+            else:
+                flat_load = min(self.vehicle.current_station.current_flat_bikes, self.vehicle.available_bike_capacity())
+                self.vehicle.current_station.current_flat_bikes -= flat_load
+                self.vehicle.current_flat_bikes += flat_load
         handling_time = (swaps + flat_load + flat_unload + bat_unload + bat_load) * Event.handling_time
         driving_time = cand_scores[0][1]
         self.vehicle.current_station = next_station
