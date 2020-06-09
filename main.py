@@ -104,7 +104,7 @@ def strategy_analysis(scen, veh, run):
     env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
 
     # Generating scenarios
-    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(1)]
+    scenarios = [env.generate_trips(simulation_time//60, gen=True) for i in range(scen)]
 
     scenario = 1
     for sc in scenarios:
