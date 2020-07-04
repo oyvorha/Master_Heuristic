@@ -108,6 +108,7 @@ def save_vehicle_output(day, no_veh, sim_heur, base_env, sim_greedy, writer, cri
             weight_df.to_excel(writer, index=False, sheet_name='Vehicle')
             writer.save()
 
+
 def save_vary_vehicle_output(day, no_veh, sim_heur, base_env, writer):
     df = pd.DataFrame(columns=['Day', 'Total_requests', 'Vehicles', 'Hour', 'Base starvations', 'Base congestions',
                                'Heuristic starvations', 'Heuristic congestions'])

@@ -59,6 +59,7 @@ def generate_all_stations(init_hour, n):
                 incoming += stat.demand_per_hour[hour] * demand_met * stat.next_station_probabilities[st2.id]
             st2.incoming_charged_bike_rate[hour] = incoming * st2.battery_rate
             st2.incoming_flat_bike_rate[hour] = incoming * (1-st2.battery_rate)
+
     return subset
 
 

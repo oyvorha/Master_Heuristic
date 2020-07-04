@@ -83,7 +83,6 @@ class GenerateRoutePattern:
 
                         # Sort candidates by criticality score
                         cand_scores = sorted(cand_scores, key=lambda l: l[2], reverse=True)
-
                     # Filtering (remember on/off opportunity)
 
                     # Extend the route with the B best stations

@@ -1,4 +1,4 @@
-from Input.preprocess import generate_all_stations, reset_stations, generate_pattern_stations, reset_cap_stations
+from Input.preprocess import *
 from vehicle import Vehicle
 from Output.save_to_excel import *
 from Simulation.BSS_environment import Environment
@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 
 start_hour = 7
 no_stations = 200
-branching = 3
+branching = 7
 subproblem_scenarios = 10
 simulation_time = 960  # 7 am to 11 pm
 stations = generate_all_stations(start_hour, no_stations)
@@ -116,16 +116,6 @@ def strategy_analysis(scen, veh, run):
         sim_base.run_simulation()
         reset_stations(stations)
 
-        """
-        # Greedy
-        init_greedy_stack = [copy.copy(trip) for trip in sc]
-        vehicles_greedy = [copy.copy(veh) for veh in vehicles]
-        sim_greedy = Environment(start_hour, simulation_time, stations, vehicles_greedy, branching,
-                                 subproblem_scenarios, trigger_start_stack=init_greedy_stack, memory_mode=True,
-                                 greedy=True, writer=writer1)
-        sim_greedy.run_simulation()
-        """
-
         # Crit off
         reset_stations(stations)
         init_crit_stack = [copy.copy(trip) for trip in sc]
@@ -135,7 +125,7 @@ def strategy_analysis(scen, veh, run):
                                criticality=False)
         crit_env.run_simulation()
 
-        # 10 subproblem
+        # Crit on
         reset_stations(stations)
         init_heur_stack = [copy.copy(trip) for trip in sc]
         vehicles_heur = [copy.copy(veh) for veh in vehicles]
@@ -154,8 +144,26 @@ def first_step():
     writer.book = book
     v = Vehicle(init_battery_load=40, init_charged_bikes=10, init_flat_bikes=0
                 , current_station=stations[0], id=0)
-    sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios, writer=writer)
+    sim_env = Environment(start_hour, simulation_time, stations, [v], branching, subproblem_scenarios, writer=writer, greedy=True)
     sim_env.run_simulation()
+
+
+def charging_station(days):
+    # Create excel writer
+    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
+    book = load_workbook("Output/output.xlsx")
+    writer.book = book
+
+    env = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios)
+    days = [env.generate_trips(simulation_time // 60, gen=True) for i in range(days)]
+
+    for d in range(len(days)):
+        trips = [copy.copy(trip) for trip in days[d]]
+        env_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
+                               memory_mode=True, trigger_start_stack=trips)
+        env_base.run_simulation()
+        save_station_cap_output(d+1, env_base, env_base, 0, writer)
+        change_charging_stations(stations, 0)
 
 
 def runtime_analysis(run):
@@ -223,9 +231,13 @@ def fleet_analysis(days, run):
     days = [env.generate_trips(simulation_time // 60, gen=True) for i in range(days)]
 
     # Create excel writer
-    writer = pd.ExcelWriter("Output/runtime_" + run + ".xlsx", engine='openpyxl')
-    book = load_workbook("Output/runtime_" + run + ".xlsx")
+    writer = pd.ExcelWriter("Output/output.xlsx", engine='openpyxl')
+    book = load_workbook("Output/output.xlsx")
     writer.book = book
+
+    writer1 = pd.ExcelWriter("Output/runtime_" + run + ".xlsx", engine='openpyxl')
+    book1 = load_workbook("Output/runtime_" + run + ".xlsx")
+    writer1.book = book1
 
     base_envs = list()
     for j in range(len(days)):
@@ -256,7 +268,7 @@ def fleet_analysis(days, run):
                 vehicles_heur = [copy.copy(veh) for veh in veh1]
                 sim_heur = Environment(start_hour, simulation_time, stations, vehicles_heur, branching,
                                        subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
-                                       criticality=True)
+                                       criticality=True, writer=writer1)
                 sim_heur.run_simulation()
                 save_fleet_output(d+1, n_rb, n_bat, sim_heur, base_envs[d], writer)
 
@@ -272,33 +284,24 @@ def station_cap(no_days, run):
     book = load_workbook("Output/runtime_" + run + ".xlsx")
     writer.book = book
 
-    vehicles = list()
-    for i in range(5):
-        vehicles.append(Vehicle(init_battery_load=40, init_charged_bikes=0, init_flat_bikes=0,
-                                current_station=stations[i], id=i))
-
     for d in range(no_days):
-        for m in [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3]:
+        for m in [0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3]:
+            print(m)
             reset_cap_stations(stations, m)
             init_base_stack = [copy.copy(trip) for trip in days[d]]
             sim_base = Environment(start_hour, simulation_time, stations, list(), branching, subproblem_scenarios,
                                    trigger_start_stack=init_base_stack, memory_mode=True)
             sim_base.run_simulation()
 
-            reset_cap_stations(stations, m)
-            init_heur_stack = [copy.copy(trip) for trip in days[d]]
-            vehicles_heur = [copy.copy(veh) for veh in vehicles]
-            sim_heur = Environment(start_hour, simulation_time, stations, vehicles_heur, branching,
-                                   subproblem_scenarios, trigger_start_stack=init_heur_stack, memory_mode=True,
-                                   criticality=True)
-            sim_heur.run_simulation()
-
-            save_station_cap_output(d+1, sim_heur, sim_base, m, writer)
+            save_station_cap_output(d+1, sim_base, sim_base, m, writer)
 
 
 if __name__ == '__main__':
-    print("w: weight analysis, c: strategy comparison, r: runtime analysis, fs: first step analysis, v: vehicles")
+    print("w: weight analysis, c: strategy comparison, r: runtime analysis, fs: first step analysis, v: vehicles,"
+          "charge: charging analysis, vf: fleet analysis")
     choice = input('Choose action: ')
+    sim_env = Environment(start_hour, 0, stations, list(), branching, subproblem_scenarios)
+    sim_env.run_simulation()
     if choice == 'w1':
         weight_analysis(choice)
     elif choice == 'v':
@@ -306,6 +309,9 @@ if __name__ == '__main__':
         vehicles = input('Number of vehicles:')
         run = input('run number:')
         vehicle_analysis(int(scenarios), int(vehicles), run)
+    elif choice == 'charge':
+        days = input('Number of days:')
+        charging_station(int(days))
     elif choice == 'sc':
         days = input('Number of days:')
         run = input('run number:')

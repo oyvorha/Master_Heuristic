@@ -100,7 +100,6 @@ class HeuristicManager:
                 scenario.append([c1_times, c2_times, c3_times])
             self.customer_arrival_scenarios.append(scenario)
 
-
     @staticmethod
     def poisson_simulation(intensity_rate, time_steps):
         times = list()
