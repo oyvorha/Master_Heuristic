@@ -4,7 +4,7 @@ This repository implements a stack based simulator incorporating a heuristic to 
 *Dynamic Stochastic Bicycle Rebalancing and Charging Problem* (DSBRCP). The simulator is event triggered. An event can
 be triggered by a customer arrival at a station, a *bicycle trigger*, or a service vehicle arrival at a station,
 a *vehicle trigger*. The test instance data is collected from *Oslo City Bike*. A valid [Google Cloud]
-(https://cloud.google.com/bigquery) user with access to UIP's data is required.
+user with access to UIP's data is required.
 
 The model is run from **main.py** where the following input-parameters should be set:
 start_hour = the hour of the day to start the simulation
@@ -25,3 +25,4 @@ When running the simulator, a menu gives the user 7 possible analyses that can b
 The simulation output is saved in associated excel-files in the **Output** directory. A visualization of the simulation
 can be seen by running **map_view.html** after completing the simulation.
 
+[Google Cloud]: <https://cloud.google.com/bigquery>
