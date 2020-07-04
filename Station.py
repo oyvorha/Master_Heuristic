@@ -7,7 +7,7 @@ class Station:
     def __init__(self, latitude=None, longitude=None, charged_load=None, flat_load=None, ideal_state=None,
                  charging=False, depot=False, dockgroup_id=None, next_station_probabilities=None,
                  station_travel_time=None, station_car_travel_time=None, name=None, actual_num_bikes=None,
-                 max_capacity=None, demand_per_hour=None, battery_rate=0):
+                 max_capacity=None, demand_per_hour=None, battery_rate=0, alfa=1):
         self.id = dockgroup_id
         self.latitude = latitude
         self.longitude = longitude
@@ -15,6 +15,8 @@ class Station:
         self.charging_station = charging
         self.battery_rate = battery_rate
         self.depot = depot
+        self.station_init_cap = max_capacity
+        self.alfa = alfa
 
         # The following varies with scenario
         self.incoming_charged_bike_rate = dict()
@@ -41,7 +43,7 @@ class Station:
         self.total_starvations = 0
         self.total_congestions = 0
 
-    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=50, max_time=1000):
+    def get_candidate_stations(self, station_list, tabu_list=list(), max_candidates=10, max_time=1000):
         closest_stations = list()
         for station in station_list:
             if station.id not in tabu_list:
@@ -87,17 +89,19 @@ class Station:
         return next_prob/np.sum(next_prob)
 
     def get_outgoing_customer_rate(self, hour):
-        return self.demand_per_hour[hour]
+        return self.demand_per_hour[hour]*self.alfa
 
     def get_incoming_charged_rate(self, hour):
-        return self.incoming_charged_bike_rate[hour]
+        return self.incoming_charged_bike_rate[hour]*self.alfa
 
     def get_incoming_flat_rate(self, hour):
-        return self.incoming_flat_bike_rate[hour]
+        return self.incoming_flat_bike_rate[hour]*self.alfa
 
     def get_criticality_score(self, vehicle, time_horizon, hour, driving_time, w_viol, w_drive, w_dev, w_net,
                               first_station):
         # ------- Time to violation -------
+        if vehicle.battery_capacity == 0 and self.depot:
+            return -100000
         if self.depot and vehicle.current_batteries < 2:
             return 100000
         time_to_starvation = 10000
@@ -119,6 +123,10 @@ class Station:
             if t_starv > 0:
                 time_to_starvation = t_starv
         time_to_violation = min(time_to_starvation, time_to_congestion)
+        if (vehicle.current_station.current_charged_bikes - vehicle.current_station.get_ideal_state(
+                hour)) > 0 and (self.incoming_flat_bike_rate[hour] + self.incoming_charged_bike_rate[hour] -
+                 self.demand_per_hour[hour]) > 0 and first_station and self.current_charged_bikes > self.get_ideal_state(hour):
+            return -10000
         # ------- Deviation at time horizon  -------
         # Starving station
         if self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] > 0:
@@ -126,13 +134,13 @@ class Station:
                     self.incoming_charged_bike_rate[hour]) * min(time_horizon, time_to_starvation)
             if self.get_ideal_state(hour) - charged_at_t > 0 and first_station and (vehicle.current_charged_bikes < 2 and (
                     vehicle.current_batteries < 2 or self.current_flat_bikes < 2)):
-                return 0
+                return -10000
         # Congesting station
         elif self.demand_per_hour[hour] - self.incoming_charged_bike_rate[hour] < 0:
             charged_at_t = self.current_charged_bikes + (self.incoming_charged_bike_rate[hour]
                     - self.demand_per_hour[hour]) * min(time_horizon, time_to_congestion)
             if self.available_parking() == 0 and first_station and vehicle.available_bike_capacity() < 2:
-                return 0
+                return -10000
         else:
             charged_at_t = self.current_charged_bikes
         dev = abs(self.get_ideal_state(hour) - charged_at_t)

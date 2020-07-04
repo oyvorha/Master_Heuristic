@@ -83,7 +83,6 @@ class GenerateRoutePattern:
 
                         # Sort candidates by criticality score
                         cand_scores = sorted(cand_scores, key=lambda l: l[2], reverse=True)
-
                     # Filtering (remember on/off opportunity)
 
                     # Extend the route with the B best stations
@@ -98,7 +97,7 @@ class GenerateRoutePattern:
                     finished_routes.append(col)
                 construction_routes.remove(col)
                 if self.init_branching > 4 and self.dynamic:
-                    self.init_branching = 3
+                    self.init_branching = 1
                 elif self.init_branching > 1 and self.dynamic:
                     self.init_branching = 1
         self.finished_gen_routes = finished_routes
